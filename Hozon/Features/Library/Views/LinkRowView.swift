@@ -17,6 +17,8 @@ struct LinkRowView: View {
 
             Text(link.title)
                 .font(.headline)
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
     }
 
