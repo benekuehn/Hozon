@@ -41,4 +41,11 @@ enum LinkSource: String, Decodable {
     case extensionSource = "extension"
     case email
     case rss
+    case shortcut
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let rawValue = try decoder.singleValueContainer().decode(String.self)
+        self = LinkSource(rawValue: rawValue) ?? .unknown
+    }
 }
