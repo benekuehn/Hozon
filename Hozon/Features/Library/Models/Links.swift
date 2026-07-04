@@ -11,7 +11,7 @@ struct Link: Identifiable, Decodable {
     let url: URL
     let title: String
     let domain: String
-    let summary: String
+    let summary: String?
     let imageUrl: URL?
     let status: LinkStatus
     let source: LinkSource
