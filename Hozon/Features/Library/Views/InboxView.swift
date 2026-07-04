@@ -173,6 +173,9 @@ struct LinksView: View {
         }
         .navigationTitle(title)
         .listStyle(.grouped)
+        .refreshable {
+            await store.load()
+        }
         .scrollContentBackground(.hidden)
         .background(AppTheme.background)
         .overlay {

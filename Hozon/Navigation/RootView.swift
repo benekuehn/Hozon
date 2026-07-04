@@ -8,6 +8,7 @@ private enum AppTab: Hashable {
 }
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: AppTab = .inbox
     @State private var inboxStore: LinksStore
     @State private var archiveStore: LinksStore
@@ -80,22 +81,26 @@ struct RootView: View {
         .defaultAdaptableTabBarPlacement(.sidebar)
         .background(AppTheme.background)
         .task(id: selectedTab) {
-            switch selectedTab {
-            case .search:
-                break
-            case .inbox:
-                if inboxStore.links.isEmpty {
-                    await inboxStore.load()
-                }
-            case .archive:
-                if archiveStore.links.isEmpty {
-                    await archiveStore.load()
-                }
-            case .trash:
-                if trashStore.links.isEmpty {
-                    await trashStore.load()
-                }
+            await refreshSelectedTab()
+        }
+        .onChange(of: scenePhase, initial: false) { _, newPhase in
+            guard newPhase == .active else { return }
+            Task {
+                await refreshSelectedTab()
             }
+        }
+    }
+
+    private func refreshSelectedTab() async {
+        switch selectedTab {
+        case .search:
+            break
+        case .inbox:
+            await inboxStore.load()
+        case .archive:
+            await archiveStore.load()
+        case .trash:
+            await trashStore.load()
         }
     }
 }
