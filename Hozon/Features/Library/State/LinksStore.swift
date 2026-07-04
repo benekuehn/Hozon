@@ -54,11 +54,15 @@ final class LinksStore {
         }
 
         setLoading(false)
+        if let firstLink = links.first {
+            await loadNextPageIfNeeded(currentLink: firstLink)
+        }
     }
 
     func loadNextPageIfNeeded(currentLink: Link) async {
-        guard currentLink.id == links.last?.id else { return }
+        guard let currentIndex = links.firstIndex(where: { $0.id == currentLink.id }) else { return }
         guard !isLoading, !isLoadingMore, links.count < total else { return }
+        guard currentIndex >= max(0, links.count - pageSize) else { return }
 
         errorMessage = nil
         isLoadingMore = true
