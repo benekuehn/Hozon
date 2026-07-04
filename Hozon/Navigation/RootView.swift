@@ -41,6 +41,8 @@ struct RootView: View {
         TabView(selection: $selectedTab) {
             Tab(value: .search, role: .search) {
                 Text("Search")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(AppTheme.background)
             }
 
             Tab("Inbox", systemImage: "tray", value: .inbox) {
@@ -76,6 +78,7 @@ struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
+        .background(AppTheme.background)
         .task(id: selectedTab) {
             switch selectedTab {
             case .search:

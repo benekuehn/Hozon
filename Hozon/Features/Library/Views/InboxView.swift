@@ -153,6 +153,7 @@ struct LinksView: View {
                                 }
                             }
                         }
+                        .listRowBackground(AppTheme.background)
                     }
                 } header: {
                     if let title = section.title {
@@ -167,10 +168,13 @@ struct LinksView: View {
                     ProgressView()
                     Spacer()
                 }
+                .listRowBackground(AppTheme.background)
             }
         }
         .navigationTitle(title)
-        .listStyle(.plain)
+        .listStyle(.grouped)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background)
         .overlay {
             if store.isLoading {
                 ProgressView()
