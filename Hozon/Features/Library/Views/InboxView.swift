@@ -6,7 +6,7 @@ struct LinksView: View {
     let showsDateSections: Bool
     let showsArchiveAction: Bool
     let showsDeleteAction: Bool
-    @State private var selectedLink: Link?
+    @State private var selectedLinkID: Link.ID?
     
     private enum InboxBucket: String, CaseIterable, Identifiable {
         case today = "Today"
@@ -50,95 +50,172 @@ struct LinksView: View {
         }
     }
 
+    private var selectedLink: Link? {
+        guard let selectedLinkID else { return nil }
+        return store.links.first { $0.id == selectedLinkID }
+    }
+
+    @ViewBuilder
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(sections) { section in
-                    Section {
-                        ForEach(section.links) { link in
-                            Button {
-                                selectedLink = link
-                            } label: {
-                                LinkRowView(link: link)
-                            }
-                            .buttonStyle(.plain)
-                            .onAppear {
-                                Task {
-                                    await store.loadNextPageIfNeeded(currentLink: link)
-                                }
-                            }
-                            .swipeActions(edge: .leading, allowsFullSwipe: showsArchiveAction) {
-                                if showsArchiveAction {
-                                    Button {
-                                        Task {
-                                            await store.archiveLink(link)
-                                        }
-                                    } label: {
-                                        Label("Archive", systemImage: "archivebox")
-                                    }
-                                }
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: showsDeleteAction) {
-                                if showsDeleteAction {
-                                    Button(role: .destructive) {
-                                        Task {
-                                            await store.deleteLink(link)
-                                        }
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                }
-                            }    
-                        }
-                    } header: {
-                        if let title = section.title {
-                            Text(title)
+        GeometryReader { proxy in
+            if usesLandscapeReaderLayout(in: proxy.size) {
+                HStack(spacing: 0) {
+                    NavigationStack {
+                        linksList
+                    }
+                    .frame(width: selectedLink == nil ? proxy.size.width : listColumnWidth(for: proxy.size))
+
+                    if let selectedLink {
+                        Divider()
+
+                        NavigationStack {
+                            browserView(for: selectedLink, showsCollapseButton: true)
                         }
                     }
                 }
-
-                if store.isLoadingMore {
-                    HStack {
-                        Spacer()
-                        ProgressView()
-                        Spacer()
-                    }
-                }
-            }
-            .navigationTitle(title)
-            .overlay {
-                if store.isLoading {
-                    ProgressView()
-                } else if let errorMessage = store.errorMessage, store.links.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.largeTitle)
-                            .foregroundStyle(.secondary)
-
-                        Text("Could not load \(title.lowercased())")
-                            .font(.headline)
-
-                        Text(errorMessage)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-
-                        Button {
-                            Task {
-                                await store.load()
+                .animation(.easeInOut(duration: 0.18), value: selectedLinkID)
+            } else {
+                NavigationStack {
+                    linksList
+                        .navigationDestination(item: $selectedLinkID) { linkID in
+                            if let link = store.links.first(where: { $0.id == linkID }) {
+                                browserView(for: link, showsCollapseButton: false)
                             }
-                        } label: {
-                            Label("Retry", systemImage: "arrow.clockwise")
                         }
-                        .buttonStyle(.borderedProminent)
-                    }
                 }
-            }
-            .sheet(item: $selectedLink) { link in
-                SafariView(url: link.url)
-                    .ignoresSafeArea()
             }
         }
+        .task {
+            SafariView.prewarm()
+        }
+    }
+
+    private func archive(_ link: Link) async {
+        if selectedLinkID == link.id {
+            selectedLinkID = nil
+        }
+
+        await store.archiveLink(link)
+    }
+
+    private func delete(_ link: Link) async {
+        if selectedLinkID == link.id {
+            selectedLinkID = nil
+        }
+
+        await store.deleteLink(link)
+    }
+
+    private func usesLandscapeReaderLayout(in size: CGSize) -> Bool {
+        UIDevice.current.userInterfaceIdiom == .pad &&
+        size.width > size.height
+    }
+
+    private func listColumnWidth(for size: CGSize) -> CGFloat {
+        min(max(size.width * 0.34, 300), 420)
+    }
+
+    private var linksList: some View {
+        List {
+            ForEach(sections) { section in
+                Section {
+                    ForEach(section.links) { link in
+                        Button {
+                            selectedLinkID = link.id
+                        } label: {
+                            LinkRowView(link: link)
+                        }
+                        .buttonStyle(.plain)
+                        .onAppear {
+                            Task {
+                                await store.loadNextPageIfNeeded(currentLink: link)
+                            }
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: showsArchiveAction) {
+                            if showsArchiveAction {
+                                Button {
+                                    Task {
+                                        await archive(link)
+                                    }
+                                } label: {
+                                    Label("Archive", systemImage: "archivebox")
+                                }
+                            }
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: showsDeleteAction) {
+                            if showsDeleteAction {
+                                Button(role: .destructive) {
+                                    Task {
+                                        await delete(link)
+                                    }
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    if let title = section.title {
+                        Text(title)
+                    }
+                }
+            }
+
+            if store.isLoadingMore {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                    Spacer()
+                }
+            }
+        }
+        .navigationTitle(title)
+        .listStyle(.plain)
+        .overlay {
+            if store.isLoading {
+                ProgressView()
+            } else if let errorMessage = store.errorMessage, store.links.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+
+                    Text("Could not load \(title.lowercased())")
+                        .font(.headline)
+
+                    Text(errorMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    Button {
+                        Task {
+                            await store.load()
+                        }
+                    } label: {
+                        Label("Retry", systemImage: "arrow.clockwise")
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+            }
+        }
+    }
+
+    private func browserView(for link: Link, showsCollapseButton: Bool) -> some View {
+        SafariView(url: link.url)
+            .navigationTitle(link.domain)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if showsCollapseButton {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            selectedLinkID = nil
+                        } label: {
+                            Image(systemName: "chevron.left")
+                        }
+                    }
+                }
+            }
     }
 }
