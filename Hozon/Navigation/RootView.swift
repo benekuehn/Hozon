@@ -47,6 +47,7 @@ struct RootView: View {
                 LinksView(
                     title: "Inbox",
                     store: inboxStore,
+                    showsDateSections: true,
                     showsArchiveAction: true,
                     showsDeleteAction: true
                 )
@@ -56,6 +57,7 @@ struct RootView: View {
                 LinksView(
                     title: "Archive",
                     store: archiveStore,
+                    showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: true
                 )
@@ -65,6 +67,7 @@ struct RootView: View {
                 LinksView(
                     title: "Trash",
                     store: trashStore,
+                    showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: false
                 )
