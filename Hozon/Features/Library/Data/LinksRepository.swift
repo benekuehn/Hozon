@@ -1,5 +1,5 @@
 protocol LinksRepository {
-    func cachedInboxLinks() async -> [Link]
+    func cachedLinks(for list: LinksList) async -> [Link]
     func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse
     func fetchArchiveLinks(limit: Int, offset: Int) async throws -> LinksResponse
     func fetchTrashLinks(limit: Int, offset: Int) async throws -> LinksResponse

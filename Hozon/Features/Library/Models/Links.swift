@@ -1,12 +1,12 @@
 import Foundation
 
-struct LinksResponse: Decodable {
+struct LinksResponse: Decodable, Sendable {
     let success: Bool
     let links: [Link]
     let total: Int
 }
 
-struct Link: Identifiable, Decodable {
+struct Link: Identifiable, Codable, Sendable {
     let id: String
     let url: URL
     let title: String
@@ -28,14 +28,14 @@ struct Link: Identifiable, Decodable {
     let discoverableFeedUrl: URL?
 }
 
-enum LinkStatus: String, Decodable {
+enum LinkStatus: String, Codable, Sendable {
     case created
     case processing
     case ready
     case failed
 }
 
-enum LinkSource: String, Decodable {
+enum LinkSource: String, Codable, Sendable {
     case api
     case web
     case extensionSource = "extension"
@@ -47,5 +47,10 @@ enum LinkSource: String, Decodable {
     init(from decoder: Decoder) throws {
         let rawValue = try decoder.singleValueContainer().decode(String.self)
         self = LinkSource(rawValue: rawValue) ?? .unknown
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
     }
 }

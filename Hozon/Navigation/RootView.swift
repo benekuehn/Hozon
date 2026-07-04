@@ -109,8 +109,8 @@ struct RootView: View {
 }
 
 private struct PreviewLinksRepository: LinksRepository {
-    func cachedInboxLinks() async -> [Link] {
-        previewLinks()
+    func cachedLinks(for list: LinksList) async -> [Link] {
+        list == .inbox ? previewLinks() : []
     }
 
     func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse {

@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum LinksList {
+enum LinksList: Sendable {
     case inbox
     case archive
     case trash
@@ -32,15 +32,13 @@ final class LinksStore {
 
         errorMessage = nil
 
-        if list == .inbox {
-            let cachedLinks = await repository.cachedInboxLinks()
+        let cachedLinks = await repository.cachedLinks(for: list)
 
-            if !cachedLinks.isEmpty {
-                links = cachedLinks
-                total = cachedLinks.count
-                offset = cachedLinks.count
-                setLoading(false)
-            }
+        if !cachedLinks.isEmpty {
+            links = cachedLinks
+            total = cachedLinks.count
+            offset = cachedLinks.count
+            setLoading(false)
         }
 
         do {
