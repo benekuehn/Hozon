@@ -13,7 +13,7 @@ struct LinkRowView: View {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(AppTheme.rowIconBackground)
             }
-            .frame(width: 32, height: 32)
+            .frame(width: 24, height: 24)
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
             Text(link.title)
