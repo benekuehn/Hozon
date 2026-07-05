@@ -165,6 +165,7 @@ struct LinksView: View {
                 } label: {
                     Label("Archive", systemImage: "archivebox")
                 }
+                .tint(.gray)
             }
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: showsDeleteAction) {
@@ -176,6 +177,7 @@ struct LinksView: View {
                 } label: {
                     Label("Delete", systemImage: "trash")
                 }
+                .tint(.red)
             }
         }
         .listRowBackground(AppTheme.rowBackground)
