@@ -20,7 +20,7 @@ enum AppTheme {
 
     private static let uiRowBackground = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0.22, green: 0.18, blue: 0.14, alpha: 1)
+            ? UIColor(red: 38 / 255, green: 28 / 255, blue: 23 / 255, alpha: 1)
             : .white
     }
 
@@ -33,9 +33,9 @@ enum AppTheme {
     private static let lightBackground = UIColor(red: 254 / 255, green: 250 / 255, blue: 244 / 255, alpha: 1)
 
     private static let darkBackground = UIColor(
-        red: 0.1453835916,
-        green: 0.1166666397,
-        blue: 0.0866956741,
+        red: 16 / 255,
+        green: 9 / 255,
+        blue: 7 / 255,
         alpha: 1
     )
 }
