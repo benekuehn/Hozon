@@ -1,67 +1,37 @@
 import SwiftUI
-import WebKit
+import SafariServices
 
-struct SafariView: View {
-    let url: URL
-    @State private var webView: WKWebView
+struct BrowserSheetView: UIViewControllerRepresentable {
+    @Environment(\.dismiss) private var dismiss
 
-    init(url: URL) {
-        self.url = url
-        _webView = State(initialValue: WebViewPrewarmer.shared.takeWebView())
-    }
-
-    var body: some View {
-        WebView(webView: webView, url: url)
-    }
-
-    static func prewarm() {
-        WebViewPrewarmer.shared.prewarm()
-    }
-}
-
-private struct WebView: UIViewRepresentable {
-    let webView: WKWebView
     let url: URL
 
-    func makeUIView(context: Context) -> WKWebView {
-        webView.load(URLRequest(url: url))
-        return webView
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let configuration = SFSafariViewController.Configuration()
+        configuration.entersReaderIfAvailable = false
+        configuration.barCollapsingEnabled = true
+
+        let viewController = SFSafariViewController(url: url, configuration: configuration)
+        viewController.delegate = context.coordinator
+        viewController.dismissButtonStyle = .close
+        return viewController
     }
 
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        guard webView.url != url else { return }
-        webView.load(URLRequest(url: url))
-    }
-}
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 
-@MainActor
-private final class WebViewPrewarmer {
-    static let shared = WebViewPrewarmer()
-
-    private var warmedWebView: WKWebView?
-
-    private init() {}
-
-    func prewarm() {
-        guard warmedWebView == nil else { return }
-        let webView = Self.makeWebView()
-        webView.loadHTMLString("", baseURL: nil)
-        warmedWebView = webView
+    func makeCoordinator() -> Coordinator {
+        Coordinator(dismiss: dismiss)
     }
 
-    func takeWebView() -> WKWebView {
-        if let webView = warmedWebView {
-            warmedWebView = nil
-            prewarm()
-            return webView
+    final class Coordinator: NSObject, SFSafariViewControllerDelegate {
+        private let dismiss: DismissAction
+
+        init(dismiss: DismissAction) {
+            self.dismiss = dismiss
         }
 
-        return Self.makeWebView()
-    }
-
-    private static func makeWebView() -> WKWebView {
-        let webView = WKWebView()
-        webView.allowsBackForwardNavigationGestures = true
-        return webView
+        func safariViewControllerDidFinish(_ controller: SFSafariViewController) {
+            dismiss()
+        }
     }
 }
