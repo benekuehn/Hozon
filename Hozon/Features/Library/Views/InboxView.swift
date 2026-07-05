@@ -82,10 +82,14 @@ struct LinksView: View {
                 Section {
                     ForEach(section.links) { link in
                         linkRow(for: link)
+                            .listRowInsets(.init(top: 0, leading: 16, bottom: 0, trailing: 16))
                     }
                 } header: {
                     if let title = section.title {
                         Text(title)
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                            .textCase(nil)
                     }
                 }
             }
@@ -96,11 +100,13 @@ struct LinksView: View {
                     ProgressView()
                     Spacer()
                 }
-                .listRowBackground(AppTheme.background)
+                .listRowBackground(AppTheme.listCardBackground)
+                .listRowSeparator(.hidden)
             }
         }
         .navigationTitle(title)
-        .listStyle(.grouped)
+        .navigationBarTitleDisplayMode(.large)
+        .listStyle(.insetGrouped)
         .refreshable {
             await store.load()
         }
@@ -144,6 +150,7 @@ struct LinksView: View {
             LinkRowView(link: link)
         }
         .buttonStyle(.plain)
+        .listRowSeparator(.hidden)
         .onAppear {
             Task {
                 await store.loadNextPageIfNeeded(currentLink: link)
@@ -171,6 +178,6 @@ struct LinksView: View {
                 }
             }
         }
-        .listRowBackground(AppTheme.background)
+        .listRowBackground(AppTheme.rowBackground)
     }
 }

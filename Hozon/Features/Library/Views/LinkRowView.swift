@@ -8,20 +8,22 @@ struct LinkRowView: View {
             AsyncImage(url: faviconURL(for: link.url)) { image in
                 image
                     .resizable()
-                    .scaledToFit()
+                    .scaledToFill()
             } placeholder: {
-                Color.gray.opacity(0.2)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(AppTheme.rowIconBackground)
             }
-            .frame(width: 24, height: 24)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .frame(width: 32, height: 32)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
             Text(link.title)
-                .font(.headline)
+                .font(.body)
                 .lineLimit(1)
                 .truncationMode(.tail)
 
             Spacer(minLength: 0)
         }
+        .frame(minHeight: 52, alignment: .leading)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }

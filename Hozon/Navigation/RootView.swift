@@ -80,6 +80,7 @@ struct RootView: View {
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
         .background(AppTheme.background)
+        .tint(AppTheme.accent)
         .task(id: selectedTab) {
             await refreshSelectedTab()
         }
