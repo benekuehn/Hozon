@@ -19,7 +19,11 @@ struct LinkRowView: View {
                 .font(.headline)
                 .lineLimit(1)
                 .truncationMode(.tail)
+
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 
     private func faviconURL(for pageURL: URL) -> URL? {
