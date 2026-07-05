@@ -17,6 +17,7 @@ struct ShioriLinksRepository: LinksRepository {
 
     func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse {
         let response = try await apiClient.fetchLinks(
+            read: "unread",
             limit: limit,
             offset: offset
         )
