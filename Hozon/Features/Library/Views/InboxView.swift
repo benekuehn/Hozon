@@ -56,7 +56,11 @@ struct LinksView: View {
             linksList
         }
         .fullScreenCover(item: $selectedLink) { link in
-            BrowserSheetView(url: link.url)
+            ZStack {
+                AppTheme.background.ignoresSafeArea(edges: .top)
+                BrowserSheetView(url: link.url)
+                    .ignoresSafeArea(edges: .bottom)
+            }
         }
     }
 
