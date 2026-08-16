@@ -1,3 +1,5 @@
+import Foundation
+
 struct ShioriLinksRepository: LinksRepository {
     let apiClient: ShioriAPIClient
     private let cache: LinksCache
@@ -61,6 +63,32 @@ struct ShioriLinksRepository: LinksRepository {
     func deleteLink(id: Link.ID) async throws {
         try await apiClient.deleteLink(id: id)
         await cache.removeLink(id: id)
+    }
+
+    func cachedSubscriptions() async -> [Subscription] {
+        await cache.cachedSubscriptions()
+    }
+
+    func refreshSubscriptions() async throws -> [Subscription] {
+        let subscriptions = try await apiClient.fetchSubscriptions()
+        await cache.setSubscriptions(subscriptions)
+        return subscriptions
+    }
+
+    func subscribe(to feedURL: URL) async throws -> Subscription {
+        let subscription = try await apiClient.subscribe(to: feedURL)
+        var subscriptions = await cache.cachedSubscriptions()
+        subscriptions.removeAll { $0.feedUrl == feedURL }
+        subscriptions.append(subscription)
+        await cache.setSubscriptions(subscriptions)
+        return subscription
+    }
+
+    func unsubscribe(id: Subscription.ID) async throws {
+        try await apiClient.unsubscribe(id: id)
+        var subscriptions = await cache.cachedSubscriptions()
+        subscriptions.removeAll { $0.id == id }
+        await cache.setSubscriptions(subscriptions)
     }
 
     private func cacheResponse(_ response: LinksResponse, for list: LinksList, offset: Int) async {

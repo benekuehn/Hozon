@@ -6,6 +6,19 @@ struct LinksResponse: Decodable, Sendable {
     let total: Int
 }
 
+struct Subscription: Codable, Sendable, Identifiable {
+    let id: String
+    let feedUrl: URL
+}
+
+struct SubscriptionsResponse: Decodable {
+    let subscriptions: [Subscription]
+}
+
+struct SubscriptionResponse: Decodable {
+    let subscription: Subscription
+}
+
 struct Link: Identifiable, Codable, Sendable {
     let id: String
     let url: URL

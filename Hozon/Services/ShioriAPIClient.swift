@@ -5,6 +5,11 @@ enum ShioriAPIError: LocalizedError {
     case requestFailed(statusCode: Int, body: String)
     case responseDecodingFailed(String)
 
+    var statusCode: Int? {
+        guard case let .requestFailed(statusCode, _) = self else { return nil }
+        return statusCode
+    }
+
     var errorDescription: String? {
         switch self {
         case .invalidResponse:
@@ -137,4 +142,36 @@ struct ShioriAPIClient {
         )
     }
 
+    func fetchSubscriptions() async throws -> [Subscription] {
+        let data = try await request(path: "api/subscriptions", method: "GET")
+        return try decode(SubscriptionsResponse.self, from: data).subscriptions
+    }
+
+    func subscribe(to feedURL: URL) async throws -> Subscription {
+        let body = try JSONEncoder().encode(SubscriptionRequest(feedUrl: feedURL.absoluteString))
+        let data = try await request(path: "api/subscriptions", method: "POST", body: body)
+        return try decode(SubscriptionResponse.self, from: data).subscription
+    }
+
+    func unsubscribe(id: Subscription.ID) async throws {
+        _ = try await request(path: "api/subscriptions/\(id)", method: "DELETE")
+    }
+
+    private func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .iso8601
+
+        do {
+            return try decoder.decode(type, from: data)
+        } catch {
+            throw ShioriAPIError.responseDecodingFailed(String(describing: error))
+        }
+    }
+
+}
+
+private struct SubscriptionRequest: Encodable {
+    let feedUrl: String
+    let initialSync = false
 }

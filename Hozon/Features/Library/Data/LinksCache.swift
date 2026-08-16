@@ -5,6 +5,26 @@ actor LinksCache {
         var inbox: [Link] = []
         var archive: [Link] = []
         var trash: [Link] = []
+        var subscriptions: [Subscription] = []
+
+        private enum CodingKeys: String, CodingKey {
+            case inbox, archive, trash, subscriptions
+        }
+
+        init(inbox: [Link] = [], archive: [Link] = [], trash: [Link] = [], subscriptions: [Subscription] = []) {
+            self.inbox = inbox
+            self.archive = archive
+            self.trash = trash
+            self.subscriptions = subscriptions
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            inbox = try container.decodeIfPresent([Link].self, forKey: .inbox) ?? []
+            archive = try container.decodeIfPresent([Link].self, forKey: .archive) ?? []
+            trash = try container.decodeIfPresent([Link].self, forKey: .trash) ?? []
+            subscriptions = try container.decodeIfPresent([Subscription].self, forKey: .subscriptions) ?? []
+        }
     }
 
     private let fileURL: URL
@@ -29,6 +49,15 @@ actor LinksCache {
         case .archive: snapshot.archive = links
         case .trash: snapshot.trash = links
         }
+        persist()
+    }
+
+    func cachedSubscriptions() -> [Subscription] {
+        snapshot.subscriptions
+    }
+
+    func setSubscriptions(_ subscriptions: [Subscription]) {
+        snapshot.subscriptions = subscriptions
         persist()
     }
 

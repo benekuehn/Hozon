@@ -13,6 +13,7 @@ struct RootView: View {
     @State private var inboxStore: LinksStore
     @State private var archiveStore: LinksStore
     @State private var trashStore: LinksStore
+    @State private var subscriptionsStore: SubscriptionsStore
 
     private let environment: AppEnv
 
@@ -36,6 +37,9 @@ struct RootView: View {
                 list: .trash
             )
         )
+        _subscriptionsStore = State(
+            initialValue: SubscriptionsStore(repository: environment.linksRepository)
+        )
     }
 
     var body: some View {
@@ -50,6 +54,7 @@ struct RootView: View {
                 LinksView(
                     title: "Inbox",
                     store: inboxStore,
+                    subscriptionsStore: subscriptionsStore,
                     showsDateSections: true,
                     showsArchiveAction: true,
                     showsDeleteAction: true
@@ -60,6 +65,7 @@ struct RootView: View {
                 LinksView(
                     title: "Archive",
                     store: archiveStore,
+                    subscriptionsStore: subscriptionsStore,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: true
@@ -70,6 +76,7 @@ struct RootView: View {
                 LinksView(
                     title: "Trash",
                     store: trashStore,
+                    subscriptionsStore: subscriptionsStore,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: false
@@ -84,10 +91,14 @@ struct RootView: View {
         .task(id: selectedTab) {
             await refreshSelectedTab()
         }
+        .task {
+            await subscriptionsStore.load()
+        }
         .onChange(of: scenePhase, initial: false) { _, newPhase in
             guard newPhase == .active else { return }
             Task {
                 await refreshSelectedTab()
+                await subscriptionsStore.load()
             }
         }
     }
@@ -129,7 +140,8 @@ private struct PreviewLinksRepository: LinksRepository {
             previewLink(
                 id: "preview-1",
                 title: "Designing a Native iPad Reading App",
-                domain: "example.com"
+                domain: "example.com",
+                feedURL: URL(string: "https://example.com/feed.xml")
             ),
             previewLink(
                 id: "preview-2",
@@ -155,7 +167,19 @@ private struct PreviewLinksRepository: LinksRepository {
         // No-op for previews.
     }
 
-    private func previewLink(id: String, title: String, domain: String) -> Link {
+    func cachedSubscriptions() async -> [Subscription] { [] }
+
+    func refreshSubscriptions() async throws -> [Subscription] { [] }
+
+    func subscribe(to feedURL: URL) async throws -> Subscription {
+        Subscription(id: "preview-subscription", feedUrl: feedURL)
+    }
+
+    func unsubscribe(id: Subscription.ID) async throws {
+        // No-op for previews.
+    }
+
+    private func previewLink(id: String, title: String, domain: String, feedURL: URL? = nil) -> Link {
         let url = URL(string: "https://\(domain)") ?? URL(fileURLWithPath: "/")
         let now = Date()
 
@@ -178,7 +202,7 @@ private struct PreviewLinksRepository: LinksRepository {
             fileMimeType: nil,
             notionPageId: nil,
             author: nil,
-            discoverableFeedUrl: nil
+            discoverableFeedUrl: feedURL
         )
     }
 }

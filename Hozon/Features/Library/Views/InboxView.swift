@@ -3,6 +3,7 @@ import SwiftUI
 struct LinksView: View {
     let title: String
     let store: LinksStore
+    let subscriptionsStore: SubscriptionsStore
     let showsDateSections: Bool
     let showsArchiveAction: Bool
     let showsDeleteAction: Bool
@@ -182,8 +183,53 @@ struct LinksView: View {
                     Label("Delete", systemImage: "trash")
                 }
                 .tint(.red)
+
+                FeedOptionsMenu(link: link, subscriptionsStore: subscriptionsStore)
+                .tint(.gray)
             }
         }
         .listRowBackground(AppTheme.rowBackground)
     }
+}
+
+private struct FeedOptionsMenu: View {
+    let link: Link
+    let subscriptionsStore: SubscriptionsStore
+    @State private var errorMessage: String?
+
+    var body: some View {
+        Menu {
+            Group {
+                if let feedURL = link.discoverableFeedUrl {
+                    if !subscriptionsStore.hasHydrated {
+                        Label("Checking Feed", systemImage: "antenna.radiowaves.left.and.right")
+                            .disabled(true)
+                    } else {
+                        Toggle("Subscribe to Feed", isOn: Binding(
+                            get: { subscriptionsStore.isSubscribed(for: feedURL) },
+                            set: { isSubscribed, _ in
+                                Task {
+                                    errorMessage = await subscriptionsStore.setSubscribed(isSubscribed, for: feedURL)
+                                }
+                            }
+                        ))
+                        .disabled(subscriptionsStore.isMutating || subscriptionsStore.isLoading)
+                    }
+                } else {
+                    Label("Feed Unavailable", systemImage: "antenna.radiowaves.left.and.right")
+                        .disabled(true)
+                }
+            }
+        } label: {
+            Label("More", systemImage: "ellipsis")
+        }
+        .alert("Couldn’t Update Feed", isPresented: Binding(
+            get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage ?? "")
+        }
+    }
+
 }
