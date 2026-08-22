@@ -54,6 +54,10 @@ struct ShioriLinksRepository: LinksRepository {
 
         return response
     }
+
+    func createLink(url: URL) async throws {
+        try await apiClient.createLink(url: url)
+    }
     
     func archiveLink(id: Link.ID) async throws {
         try await apiClient.archiveLink(id: id)
@@ -75,8 +79,8 @@ struct ShioriLinksRepository: LinksRepository {
         return subscriptions
     }
 
-    func subscribe(to feedURL: URL) async throws -> Subscription {
-        let subscription = try await apiClient.subscribe(to: feedURL)
+    func subscribe(to feedURL: URL, initialSync: Bool) async throws -> Subscription {
+        let subscription = try await apiClient.subscribe(to: feedURL, initialSync: initialSync)
         var subscriptions = await cache.cachedSubscriptions()
         subscriptions.removeAll { $0.feedUrl == feedURL }
         subscriptions.append(subscription)
@@ -84,7 +88,32 @@ struct ShioriLinksRepository: LinksRepository {
         return subscription
     }
 
-    func unsubscribe(id: Subscription.ID) async throws {
+    func fetchLinks(for subscriptionID: Subscription.ID, filter: FeedEntriesFilter) async throws -> [Link] {
+        let read = switch filter {
+        case .all: "all"
+        case .inbox: "unread"
+        case .archive: "read"
+        }
+        return try await apiClient.fetchLinks(for: subscriptionID, read: read)
+    }
+
+    func unsubscribe(id: Subscription.ID, disposition: UnsubscribeDisposition) async throws {
+        if disposition != .keepInInbox {
+            let unreadLinks = try await apiClient.fetchLinks(for: id, read: "unread")
+            let ids = unreadLinks.map(\.id)
+
+            switch disposition {
+            case .keepInInbox:
+                break
+            case .archiveUnread:
+                try await apiClient.archiveLinks(ids: ids)
+            case .trashUnread:
+                try await apiClient.deleteLinks(ids: ids)
+            }
+
+            await cache.removeLinks(ids: Set(ids))
+        }
+
         try await apiClient.unsubscribe(id: id)
         var subscriptions = await cache.cachedSubscriptions()
         subscriptions.removeAll { $0.id == id }

@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import UIKit
 
 @main
 struct HozonApp: App {
@@ -16,13 +15,6 @@ struct HozonApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
-    init() {
-        UIWindow.appearance().backgroundColor = AppTheme.uiBackground
-        UIScrollView.appearance().backgroundColor = AppTheme.uiBackground
-        UITableView.appearance().backgroundColor = AppTheme.uiBackground
-        UICollectionView.appearance().backgroundColor = AppTheme.uiBackground
-    }
 
     var body: some Scene {
         WindowGroup {

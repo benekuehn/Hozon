@@ -50,7 +50,7 @@ final class SubscriptionsStore {
         do {
             if desired {
                 do {
-                    let subscription = try await repository.subscribe(to: feedURL)
+                    let subscription = try await repository.subscribe(to: feedURL, initialSync: false)
                     subscriptions.removeAll { $0.feedUrl == feedURL }
                     subscriptions.append(subscription)
                 } catch let error as ShioriAPIError where error.statusCode == 409 {
@@ -58,7 +58,7 @@ final class SubscriptionsStore {
                     guard subscription(for: feedURL) != nil else { throw error }
                 }
             } else if let subscription = subscription(for: feedURL) {
-                try await repository.unsubscribe(id: subscription.id)
+                try await repository.unsubscribe(id: subscription.id, disposition: .keepInInbox)
                 subscriptions.removeAll { $0.id == subscription.id }
             }
             pending.removeValue(forKey: feedURL.absoluteString)
@@ -70,11 +70,60 @@ final class SubscriptionsStore {
         }
     }
 
+    func add(feedURL: URL, syncRecents: Bool) async -> String? {
+        guard !isLoading, !isMutating else { return "Please wait for the current update to finish." }
+        isMutating = true
+        errorMessage = nil
+        defer { isMutating = false }
+
+        do {
+            let subscription = try await repository.subscribe(to: feedURL, initialSync: syncRecents)
+            if let refreshed = try? await repository.refreshSubscriptions() {
+                subscriptions = refreshed
+            } else {
+                subscriptions.removeAll { $0.id == subscription.id || $0.feedUrl == subscription.feedUrl }
+                subscriptions.append(subscription)
+            }
+            subscriptions.sort { $0.displayTitle.localizedCaseInsensitiveCompare($1.displayTitle) == .orderedAscending }
+            return nil
+        } catch let error as ShioriAPIError where error.statusCode == 409 {
+            subscriptions = (try? await repository.refreshSubscriptions()) ?? subscriptions
+            return "You’re already subscribed to this feed."
+        } catch {
+            return message(for: error)
+        }
+    }
+
+    func unsubscribe(_ subscription: Subscription, disposition: UnsubscribeDisposition) async -> String? {
+        guard !isLoading, !isMutating else { return "Please wait for the current update to finish." }
+        let previous = subscriptions
+        isMutating = true
+        errorMessage = nil
+        defer { isMutating = false }
+
+        do {
+            try await repository.unsubscribe(id: subscription.id, disposition: disposition)
+            subscriptions.removeAll { $0.id == subscription.id }
+            return nil
+        } catch {
+            subscriptions = previous
+            return message(for: error)
+        }
+    }
+
     private func message(for error: Error) -> String {
         if error is URLError { return "Check your connection and try again." }
         if let error = error as? ShioriAPIError, [401, 403].contains(error.statusCode) {
             return "Check your Shiori API key and try again."
         }
         return "Couldn’t update this feed. Try again."
+    }
+}
+
+extension Subscription {
+    var displayTitle: String {
+        let trimmedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !trimmedTitle.isEmpty { return trimmedTitle }
+        return siteUrl?.host() ?? feedUrl.host() ?? feedUrl.absoluteString
     }
 }

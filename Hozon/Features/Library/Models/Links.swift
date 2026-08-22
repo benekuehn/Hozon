@@ -9,6 +9,29 @@ struct LinksResponse: Decodable, Sendable {
 struct Subscription: Codable, Sendable, Identifiable {
     let id: String
     let feedUrl: URL
+    let title: String?
+    let description: String?
+    let siteUrl: URL?
+    let iconUrl: URL?
+    let lastSyncedAt: Date?
+
+    init(
+        id: String,
+        feedUrl: URL,
+        title: String? = nil,
+        description: String? = nil,
+        siteUrl: URL? = nil,
+        iconUrl: URL? = nil,
+        lastSyncedAt: Date? = nil
+    ) {
+        self.id = id
+        self.feedUrl = feedUrl
+        self.title = title
+        self.description = description
+        self.siteUrl = siteUrl
+        self.iconUrl = iconUrl
+        self.lastSyncedAt = lastSyncedAt
+    }
 }
 
 struct SubscriptionsResponse: Decodable {
@@ -39,6 +62,51 @@ struct Link: Identifiable, Codable, Sendable {
     let notionPageId: String?
     let author: String?
     let discoverableFeedUrl: URL?
+    let subscriptionId: String?
+
+    init(
+        id: String,
+        url: URL,
+        title: String,
+        domain: String,
+        summary: String?,
+        imageUrl: URL?,
+        status: LinkStatus,
+        source: LinkSource,
+        createdAt: Date,
+        updatedAt: Date,
+        readAt: Date?,
+        deletedAt: Date?,
+        purgedAt: Date?,
+        hnUrl: URL?,
+        fileType: String?,
+        fileMimeType: String?,
+        notionPageId: String?,
+        author: String?,
+        discoverableFeedUrl: URL?,
+        subscriptionId: String? = nil
+    ) {
+        self.id = id
+        self.url = url
+        self.title = title
+        self.domain = domain
+        self.summary = summary
+        self.imageUrl = imageUrl
+        self.status = status
+        self.source = source
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.readAt = readAt
+        self.deletedAt = deletedAt
+        self.purgedAt = purgedAt
+        self.hnUrl = hnUrl
+        self.fileType = fileType
+        self.fileMimeType = fileMimeType
+        self.notionPageId = notionPageId
+        self.author = author
+        self.discoverableFeedUrl = discoverableFeedUrl
+        self.subscriptionId = subscriptionId
+    }
 }
 
 enum LinkStatus: String, Codable, Sendable {

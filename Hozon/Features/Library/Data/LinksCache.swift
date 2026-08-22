@@ -66,9 +66,13 @@ actor LinksCache {
     }
 
     func removeLink(id: Link.ID) {
-        snapshot.inbox.removeAll { $0.id == id }
-        snapshot.archive.removeAll { $0.id == id }
-        snapshot.trash.removeAll { $0.id == id }
+        removeLinks(ids: Set([id]))
+    }
+
+    func removeLinks(ids: Set<Link.ID>) {
+        snapshot.inbox.removeAll { ids.contains($0.id) }
+        snapshot.archive.removeAll { ids.contains($0.id) }
+        snapshot.trash.removeAll { ids.contains($0.id) }
         persist()
     }
 

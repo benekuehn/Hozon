@@ -1,6 +1,7 @@
 import Foundation
 
 enum ShioriAPIError: LocalizedError {
+    case apiKeyNotConfigured
     case invalidResponse
     case requestFailed(statusCode: Int, body: String)
     case responseDecodingFailed(String)
@@ -12,6 +13,8 @@ enum ShioriAPIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .apiKeyNotConfigured:
+            return "Add your Shiori API key in Settings to load links."
         case .invalidResponse:
             return "The server returned an invalid response."
         case .requestFailed(let statusCode, let body):
@@ -28,7 +31,7 @@ enum ShioriAPIError: LocalizedError {
 
 struct ShioriAPIClient {
     let baseURL: URL
-    let apiKey: String
+    let apiKeyStore: ShioriAPIKeyStore
     
     private func request(
         path: String,
@@ -36,6 +39,10 @@ struct ShioriAPIClient {
         queryItems: [URLQueryItem] = [],
         body: Data? = nil
     ) async throws -> Data {
+        guard let apiKey = apiKeyStore.apiKey else {
+            throw ShioriAPIError.apiKeyNotConfigured
+        }
+
         var url = baseURL.appending(path: path)
 
         if !queryItems.isEmpty {
@@ -125,6 +132,27 @@ struct ShioriAPIClient {
         }
     }
 
+    func fetchLinks(for subscriptionID: Subscription.ID, read: String) async throws -> [Link] {
+        let pageSize = 1000
+        var offset = 0
+        var matchingLinks: [Link] = []
+
+        while true {
+            let response = try await fetchLinks(read: read, limit: pageSize, offset: offset)
+            matchingLinks += response.links.filter { $0.subscriptionId == subscriptionID }
+            offset += response.links.count
+
+            if response.links.isEmpty || offset >= response.total {
+                return matchingLinks
+            }
+        }
+    }
+
+    func createLink(url: URL) async throws {
+        let body = try JSONEncoder().encode(CreateLinkRequest(url: url.absoluteString))
+        _ = try await request(path: "api/links", method: "POST", body: body)
+    }
+
     func archiveLink(id: Link.ID) async throws {
         let body = try JSONEncoder().encode(["read": true])
 
@@ -147,14 +175,28 @@ struct ShioriAPIClient {
         return try decode(SubscriptionsResponse.self, from: data).subscriptions
     }
 
-    func subscribe(to feedURL: URL) async throws -> Subscription {
-        let body = try JSONEncoder().encode(SubscriptionRequest(feedUrl: feedURL.absoluteString))
+    func subscribe(to feedURL: URL, initialSync: Bool) async throws -> Subscription {
+        let body = try JSONEncoder().encode(
+            SubscriptionRequest(feedUrl: feedURL.absoluteString, initialSync: initialSync)
+        )
         let data = try await request(path: "api/subscriptions", method: "POST", body: body)
         return try decode(SubscriptionResponse.self, from: data).subscription
     }
 
     func unsubscribe(id: Subscription.ID) async throws {
         _ = try await request(path: "api/subscriptions/\(id)", method: "DELETE")
+    }
+
+    func archiveLinks(ids: [Link.ID]) async throws {
+        guard !ids.isEmpty else { return }
+        let body = try JSONEncoder().encode(BulkReadRequest(ids: ids, read: true))
+        _ = try await request(path: "api/links", method: "PATCH", body: body)
+    }
+
+    func deleteLinks(ids: [Link.ID]) async throws {
+        guard !ids.isEmpty else { return }
+        let body = try JSONEncoder().encode(BulkDeleteRequest(ids: ids, deleted: true))
+        _ = try await request(path: "api/links", method: "PATCH", body: body)
     }
 
     private func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
@@ -173,5 +215,19 @@ struct ShioriAPIClient {
 
 private struct SubscriptionRequest: Encodable {
     let feedUrl: String
-    let initialSync = false
+    let initialSync: Bool
+}
+
+private struct CreateLinkRequest: Encodable {
+    let url: String
+}
+
+private struct BulkReadRequest: Encodable {
+    let ids: [Link.ID]
+    let read: Bool
+}
+
+private struct BulkDeleteRequest: Encodable {
+    let ids: [Link.ID]
+    let deleted: Bool
 }
