@@ -20,23 +20,37 @@ enum ShioriAPIKeyStoreError: LocalizedError {
 final class ShioriAPIKeyStore {
     private let service = "benekuehn.Hozon"
     private let account = "shiori-api-key"
-    private let storedAtDefaultsKey = "shiori-api-key-stored-at"
+    private let usesPersistentStorage: Bool
 
     private(set) var apiKey: String?
-    private(set) var apiKeyStoredAt: Date?
 
     var hasAPIKey: Bool {
         apiKey != nil
     }
 
     init() {
+        usesPersistentStorage = true
         apiKey = try? readKey()
-        apiKeyStoredAt = UserDefaults.standard.object(forKey: storedAtDefaultsKey) as? Date
+    }
+
+    /// Creates an in-memory store with fixed state for SwiftUI previews.
+    static func preview(apiKey: String? = nil) -> ShioriAPIKeyStore {
+        ShioriAPIKeyStore(previewAPIKey: apiKey)
+    }
+
+    private init(previewAPIKey: String?) {
+        usesPersistentStorage = false
+        apiKey = previewAPIKey
     }
 
     func save(_ value: String) throws {
         let key = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !key.isEmpty else { throw ShioriAPIKeyStoreError.emptyKey }
+
+        guard usesPersistentStorage else {
+            apiKey = key
+            return
+        }
 
         let data = Data(key.utf8)
         let query = baseQuery()
@@ -58,20 +72,20 @@ final class ShioriAPIKeyStore {
         }
 
         apiKey = key
-        let storedAt = Date()
-        UserDefaults.standard.set(storedAt, forKey: storedAtDefaultsKey)
-        apiKeyStoredAt = storedAt
     }
 
     func remove() throws {
+        guard usesPersistentStorage else {
+            apiKey = nil
+            return
+        }
+
         let status = SecItemDelete(baseQuery() as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw ShioriAPIKeyStoreError.keychain(status)
         }
 
         apiKey = nil
-        UserDefaults.standard.removeObject(forKey: storedAtDefaultsKey)
-        apiKeyStoredAt = nil
     }
 
     private func readKey() throws -> String? {

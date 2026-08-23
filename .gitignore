@@ -1,4 +1,6 @@
 Hozon/App/Secrets.swift
 DerivedData/
+build/
 .DS_Store
 *.xcodeproj/xcuserdata/
+**/*.xcworkspace/xcuserdata/

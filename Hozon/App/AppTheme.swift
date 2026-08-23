@@ -12,11 +12,15 @@ enum AppTheme {
     static let rowIconBackground = Color(uiColor: uiRowIconBackground)
     static let accent = Color(uiColor: uiAccent)
 
-    private static let uiAccent = UIColor(red: 0 / 255, green: 51 / 255, blue: 204 / 255, alpha: 1)
+    private static let uiAccent = UIColor { traitCollection in
+        traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 204 / 255, green: 109 / 255, blue: 0 / 255, alpha: 1)
+            : UIColor(red: 229 / 255, green: 123 / 255, blue: 0 / 255, alpha: 1)
+    }
 
     private static let uiElevation = UIColor { traitCollection in
         traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0 / 255, green: 19 / 255, blue: 77 / 255, alpha: 1)
+            ? UIColor(red: 51 / 255, green: 48 / 255, blue: 46 / 255, alpha: 1)
             : UIColor(red: 250 / 255, green: 251 / 255, blue: 249 / 255, alpha: 1)
     }
 
@@ -29,9 +33,9 @@ enum AppTheme {
     private static let lightBackground = UIColor(red: 250 / 255, green: 248 / 255, blue: 245 / 255, alpha: 1)
 
     private static let darkBackground = UIColor(
-        red: 0 / 255,
-        green: 13 / 255,
-        blue: 51 / 255,
+        red: 32 / 255,
+        green: 30 / 255,
+        blue: 29 / 255,
         alpha: 1
     )
 }
