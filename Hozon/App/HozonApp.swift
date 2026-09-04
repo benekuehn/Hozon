@@ -23,6 +23,7 @@ struct HozonApp: App {
                 RootView()
             }
             .background(AppTheme.background)
+            .tint(AppTheme.accent)
         }
         .modelContainer(sharedModelContainer)
     }

@@ -31,8 +31,11 @@ struct SettingsView: View {
                             Button("Remove", role: .destructive) {
                                 removeKey()
                             }
+                            .buttonStyle(.borderless)
                             .accessibilityHint("Removes the saved Shiori API key from this device.")
                         }
+                        .listRowBackground(AppTheme.rowBackground)
+                        .listRowSeparator(.hidden)
                     } else if isEditingAPIKey {
                         apiKeyEditor
                     } else {
@@ -43,12 +46,16 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, minHeight: Layout.apiKeyActionSize, alignment: .leading)
                         .foregroundStyle(AppTheme.accent)
                         .accessibilityHint("Lets you enter a Shiori API key to store in the device Keychain.")
+                        .listRowBackground(AppTheme.rowBackground)
+                        .listRowSeparator(.hidden)
                     }
                 } header: {
                     Text("Shiori")
                 }
             }
             .navigationTitle("Settings")
+            .scrollContentBackground(.hidden)
+            .background(AppTheme.background)
             .alert("Couldn’t Update API Key", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
@@ -97,6 +104,8 @@ struct SettingsView: View {
             .accessibilityHint("Saves your API key in the device Keychain.")
         }
         .onAppear { isAPIKeyFieldFocused = true }
+        .listRowBackground(AppTheme.rowBackground)
+        .listRowSeparator(.hidden)
     }
 
     private var hasEnteredAPIKey: Bool {

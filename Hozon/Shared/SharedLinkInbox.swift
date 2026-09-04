@@ -1,9 +1,114 @@
 import Foundation
+import Security
 
-/// A small, durable queue shared by the app and its Share extension.
+enum SharedAPIKeyError: LocalizedError {
+    case accessGroupUnavailable
+    case keychain(OSStatus)
+
+    var errorDescription: String? {
+        switch self {
+        case .accessGroupUnavailable:
+            "Hozon's shared Keychain access group is unavailable."
+        case .keychain:
+            "Your API key could not be accessed securely."
+        }
+    }
+}
+
+/// Stores the API key in a Keychain access group shared by the app and its
+/// Action extension. The app migrates keys saved before Keychain sharing was
+/// enabled, so existing installations do not need to enter the key again.
+enum SharedAPIKey {
+    private static let service = "benekuehn.Hozon"
+    private static let account = "shiori-api-key"
+    private static let accessGroupSuffix = "benekuehn.Hozon.shared"
+
+    static func migrateLegacyValueIfNeeded() throws {
+        guard try read() == nil, let legacyValue = try read(usingSharedAccessGroup: false) else {
+            return
+        }
+
+        try save(legacyValue)
+        let status = SecItemDelete(baseQuery(accessGroup: nil) as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw SharedAPIKeyError.keychain(status)
+        }
+    }
+
+    static func read() throws -> String? {
+        try read(usingSharedAccessGroup: true)
+    }
+
+    static func save(_ value: String) throws {
+        let data = Data(value.utf8)
+        let query = try baseQuery(accessGroup: accessGroup())
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+
+        let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if updateStatus == errSecItemNotFound {
+            var addQuery = query
+            attributes.forEach { addQuery[$0.key] = $0.value }
+            let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+            guard addStatus == errSecSuccess else {
+                throw SharedAPIKeyError.keychain(addStatus)
+            }
+        } else if updateStatus != errSecSuccess {
+            throw SharedAPIKeyError.keychain(updateStatus)
+        }
+    }
+
+    static func remove() throws {
+        let status = SecItemDelete(
+            try baseQuery(accessGroup: accessGroup()) as CFDictionary
+        )
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw SharedAPIKeyError.keychain(status)
+        }
+    }
+
+    private static func read(usingSharedAccessGroup: Bool) throws -> String? {
+        let group = try usingSharedAccessGroup ? accessGroup() : nil
+        var query = baseQuery(accessGroup: group)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        if status == errSecItemNotFound { return nil }
+        guard status == errSecSuccess,
+              let data = item as? Data,
+              let key = String(data: data, encoding: .utf8) else {
+            throw SharedAPIKeyError.keychain(status)
+        }
+        return key
+    }
+
+    private static func baseQuery(accessGroup: String?) -> [String: Any] {
+        var query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        query[kSecAttrAccessGroup as String] = accessGroup
+        return query
+    }
+
+    private static func accessGroup() throws -> String {
+        guard let prefix = Bundle.main.object(forInfoDictionaryKey: "AppIdentifierPrefix") as? String else {
+            throw SharedAPIKeyError.accessGroupUnavailable
+        }
+        return prefix + accessGroupSuffix
+    }
+}
+
+/// A small, durable queue shared by the app and its Action extension.
 ///
-/// The extension only writes URLs here; the containing app owns authenticated
-/// communication with Shiori when it next becomes active.
+/// The extension writes URLs here when immediate delivery fails; the containing
+/// app retries them when it next becomes active.
 struct PendingSharedLink: Codable, Hashable, Identifiable, Sendable {
     let id: UUID
     let url: URL

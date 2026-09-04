@@ -50,7 +50,6 @@ struct RootView: View {
                     title: "Inbox",
                     store: inboxStore,
                     subscriptionsStore: subscriptionsStore,
-                    isAPIKeyConfigured: environment.apiKeyStore.hasAPIKey,
                     showsDateSections: true,
                     showsArchiveAction: true,
                     showsDeleteAction: true
@@ -60,8 +59,7 @@ struct RootView: View {
             Tab("Feeds", systemImage: "dot.radiowaves.left.and.right", value: .feeds) {
                 FeedsView(
                     subscriptionsStore: subscriptionsStore,
-                    repository: environment.linksRepository,
-                    isAPIKeyConfigured: environment.apiKeyStore.hasAPIKey
+                    repository: environment.linksRepository
                 )
             }
 
@@ -70,7 +68,6 @@ struct RootView: View {
                     title: "Archive",
                     store: archiveStore,
                     subscriptionsStore: subscriptionsStore,
-                    isAPIKeyConfigured: environment.apiKeyStore.hasAPIKey,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: true
@@ -82,7 +79,6 @@ struct RootView: View {
                     title: "Trash",
                     store: trashStore,
                     subscriptionsStore: subscriptionsStore,
-                    isAPIKeyConfigured: environment.apiKeyStore.hasAPIKey,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: false
@@ -97,7 +93,14 @@ struct RootView: View {
         }
         .tabViewStyle(.sidebarAdaptable)
         .defaultAdaptableTabBarPlacement(.sidebar)
-        .tint(AppTheme.accent)
+        .sheet(isPresented: Binding(
+            get: { !environment.apiKeyStore.hasAPIKey },
+            set: { _ in }
+        )) {
+            APIKeyOnboardingView(apiKeyStore: environment.apiKeyStore)
+                .interactiveDismissDisabled()
+                .presentationSizing(.form)
+        }
         .task(id: selectedTab) {
             await refreshSelectedTab()
         }
@@ -134,7 +137,7 @@ struct RootView: View {
         }
     }
 
-    /// Delivers URLs queued by the Share extension, then refreshes Inbox so a
+    /// Delivers URLs queued by the Action extension, then refreshes Inbox so a
     /// successful share is visible as soon as the app becomes active.
     private func importSharedLinks() async {
         let pendingLinks: [PendingSharedLink]
@@ -177,12 +180,13 @@ struct RootView: View {
     RootView(
         environment: AppEnv(
             linksRepository: PreviewLinksRepository(),
-            apiKeyStore: ShioriAPIKeyStore()
+            apiKeyStore: .preview(apiKey: "preview-api-key")
         )
     )
+    .tint(AppTheme.accent)
 }
 
-private struct PreviewLinksRepository: LinksRepository {
+struct PreviewLinksRepository: LinksRepository {
     func cachedLinks(for list: LinksList) async -> [Link] {
         list == .inbox ? previewLinks() : []
     }

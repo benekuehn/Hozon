@@ -7,9 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5A0A00010000000000000006 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000002 /* ShareViewController.swift */; };
+		5A0A00010000000000000006 /* ActionRequestHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000002 /* ActionRequestHandler.swift */; };
 		5A0A00010000000000000007 /* SharedLinkInbox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000005 /* SharedLinkInbox.swift */; };
 		5A0A00010000000000000008 /* HozonShareExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000001 /* HozonShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5A0A00010000000000000021 /* Action.js in Resources */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000020 /* Action.js */; };
+		5A0A00010000000000000022 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A0A00010000000000000023 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,10 +41,12 @@
 /* Begin PBXFileReference section */
 		0B51C9962FDD9E66006413DB /* Hozon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Hozon.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5A0A00010000000000000001 /* HozonShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HozonShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		5A0A00010000000000000002 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
+		5A0A00010000000000000002 /* ActionRequestHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionRequestHandler.swift; sourceTree = "<group>"; };
 		5A0A00010000000000000003 /* HozonShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HozonShareExtension.entitlements; sourceTree = "<group>"; };
 		5A0A00010000000000000004 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5A0A00010000000000000005 /* SharedLinkInbox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedLinkInbox.swift; path = Hozon/Shared/SharedLinkInbox.swift; sourceTree = SOURCE_ROOT; };
+		5A0A00010000000000000020 /* Action.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Action.js; sourceTree = "<group>"; };
+		5A0A00010000000000000023 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Hozon/Assets.xcassets; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -105,7 +109,9 @@
 		5A0A00010000000000000010 /* HozonShareExtension */ = {
 			isa = PBXGroup;
 			children = (
-				5A0A00010000000000000002 /* ShareViewController.swift */,
+				5A0A00010000000000000002 /* ActionRequestHandler.swift */,
+				5A0A00010000000000000020 /* Action.js */,
+				5A0A00010000000000000023 /* Assets.xcassets */,
 				5A0A00010000000000000005 /* SharedLinkInbox.swift */,
 				5A0A00010000000000000003 /* HozonShareExtension.entitlements */,
 				5A0A00010000000000000004 /* Info.plist */,
@@ -206,6 +212,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5A0A00010000000000000021 /* Action.js in Resources */,
+				5A0A00010000000000000022 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,7 +231,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5A0A00010000000000000006 /* ShareViewController.swift in Sources */,
+				5A0A00010000000000000006 /* ActionRequestHandler.swift in Sources */,
 				5A0A00010000000000000007 /* SharedLinkInbox.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -247,7 +255,7 @@
 				CODE_SIGN_ENTITLEMENTS = Hozon/Hozon.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = XTULUDJFPT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -283,7 +291,7 @@
 				CODE_SIGN_ENTITLEMENTS = Hozon/Hozon.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = XTULUDJFPT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -438,9 +446,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HozonShareExtension/HozonShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HozonShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -449,7 +458,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = benekuehn.Hozon.ShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = benekuehn.Hozon.ActionExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -465,9 +474,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = HozonShareExtension/HozonShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = HozonShareExtension/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -476,7 +486,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = benekuehn.Hozon.ShareExtension;
+				PRODUCT_BUNDLE_IDENTIFIER = benekuehn.Hozon.ActionExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;

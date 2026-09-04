@@ -1,11 +1,23 @@
 import SwiftUI
 
 struct ContentView: View {
+    private let environment: AppEnv
+
+    init(environment: AppEnv = .live) {
+        self.environment = environment
+    }
+
     var body: some View {
-        RootView()
+        RootView(environment: environment)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(
+        environment: AppEnv(
+            linksRepository: PreviewLinksRepository(),
+            apiKeyStore: .preview(apiKey: "preview-api-key")
+        )
+    )
+    .tint(AppTheme.accent)
 }

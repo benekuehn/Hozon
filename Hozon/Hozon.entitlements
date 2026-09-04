@@ -6,5 +6,10 @@
 	<array>
 		<string>group.benekuehn.Hozon</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
+		<string>$(AppIdentifierPrefix)benekuehn.Hozon.shared</string>
+	</array>
 </dict>
 </plist>

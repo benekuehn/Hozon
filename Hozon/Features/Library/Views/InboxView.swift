@@ -4,7 +4,6 @@ struct LinksView: View {
     let title: String
     let store: LinksStore
     let subscriptionsStore: SubscriptionsStore
-    let isAPIKeyConfigured: Bool
     let showsDateSections: Bool
     let showsArchiveAction: Bool
     let showsDeleteAction: Bool
@@ -52,22 +51,13 @@ struct LinksView: View {
         }
     }
 
-    @ViewBuilder
     var body: some View {
         NavigationStack {
-            if isAPIKeyConfigured {
-                linksList
-            } else {
-                ContentUnavailableView(
-                    "Add Your Shiori API Key",
-                    systemImage: "key",
-                    description: Text("Open Settings in the sidebar to connect your Shiori account.")
-                )
-                .accessibilityElement(children: .combine)
-            }
+            linksList
         }
-        .fullScreenCover(item: $selectedLink) { link in
-            BrowserSheetView(url: link.url)
+        .sheet(item: $selectedLink) { link in
+            ReaderSheetView(link: link)
+                .presentationSizing(.page)
         }
     }
 

@@ -3,24 +3,13 @@ import SwiftUI
 struct FeedsView: View {
     let subscriptionsStore: SubscriptionsStore
     let repository: any LinksRepository
-    let isAPIKeyConfigured: Bool
 
     @State private var isPresentingAddFeed = false
 
     var body: some View {
         NavigationStack {
-            Group {
-                if isAPIKeyConfigured {
-                    feedsList
-                } else {
-                    ContentUnavailableView(
-                        "Add Your Shiori API Key",
-                        systemImage: "key",
-                        description: Text("Open Settings in the sidebar to connect your Shiori account.")
-                    )
-                }
-            }
-            .navigationTitle("Feeds")
+            feedsList
+                .navigationTitle("Feeds")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -28,7 +17,7 @@ struct FeedsView: View {
                         isPresentingAddFeed = true
                     }
                     .tint(.primary)
-                    .disabled(!isAPIKeyConfigured || subscriptionsStore.isMutating)
+                    .disabled(subscriptionsStore.isMutating)
                 }
             }
             .sheet(isPresented: $isPresentingAddFeed) {
@@ -305,8 +294,9 @@ private struct FeedDetailView: View {
         .refreshable {
             await store.load()
         }
-        .fullScreenCover(item: $selectedLink) { link in
-            BrowserSheetView(url: link.url)
+        .sheet(item: $selectedLink) { link in
+            ReaderSheetView(link: link)
+                .presentationSizing(.page)
         }
         .fullScreenCover(item: $websitePresentation) { presentation in
             BrowserSheetView(url: presentation.url)

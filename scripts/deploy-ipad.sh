@@ -42,7 +42,7 @@ Signing/provisioning prerequisite:
   1. Sign in to Xcode with the Apple Developer account for this project.
   2. In Certificates, Identifiers & Profiles, enable the App Group
      group.benekuehn.Hozon for both benekuehn.Hozon and
-     benekuehn.Hozon.ShareExtension.
+     benekuehn.Hozon.ActionExtension.
   3. Let Xcode's automatic signing create or refresh the development profiles,
      then rerun this script.
 EOF
