@@ -6,10 +6,14 @@ struct AppEnv {
 
     static let live: AppEnv = {
         let apiKeyStore = ShioriAPIKeyStore()
+        guard let baseURL = URL(string: "https://www.shiori.sh") else {
+            preconditionFailure("The Shiori base URL must be valid.")
+        }
+
         return AppEnv(
             linksRepository: ShioriLinksRepository(
                 apiClient: ShioriAPIClient(
-                    baseURL: URL(string: "https://www.shiori.sh")!,
+                    baseURL: baseURL,
                     apiKeyStore: apiKeyStore
                 )
             ),

@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 enum LinksList: Sendable {
     case inbox
@@ -9,6 +10,7 @@ enum LinksList: Sendable {
 @Observable
 @MainActor
 final class LinksStore {
+    private static let logger = Logger(subsystem: "com.benekuehn.Hozon", category: "LinksStore")
     private(set) var links: [Link] = []
     private(set) var isLoading = true
     private(set) var isLoadingMore = false
@@ -47,7 +49,7 @@ final class LinksStore {
             total = response.total
             offset = response.links.count
         } catch {
-            print("Failed to load links: \(error.localizedDescription)")
+            Self.logger.error("Failed to load links. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             errorMessage = error.localizedDescription
         }
 
@@ -71,7 +73,7 @@ final class LinksStore {
             total = response.total
             offset += response.links.count
         } catch {
-            print("Failed to load more links: \(error.localizedDescription)")
+            Self.logger.error("Failed to load more links. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             errorMessage = error.localizedDescription
         }
 
@@ -80,28 +82,22 @@ final class LinksStore {
     
     func archiveLink(_ link: Link) async {
         errorMessage = nil
-        print("Archive link requested: \(link.id) \(link.title)")
-
         do {
             try await repository.archiveLink(id: link.id)
-            print("Archive link succeeded: \(link.id)")
             removeLink(link)
         } catch {
-            print("Failed to archive link: \(error.localizedDescription)")
+            Self.logger.error("Failed to archive a link. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             errorMessage = error.localizedDescription
         }
     }
     
     func deleteLink(_ link: Link) async {
         errorMessage = nil
-        print("Delete link requested: \(link.id) \(link.title)")
-
         do {
             try await repository.deleteLink(id: link.id)
-            print("Delete link succeeded: \(link.id)")
             removeLink(link)
         } catch {
-            print("Failed to delete link: \(error.localizedDescription)")
+            Self.logger.error("Failed to delete a link. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             errorMessage = error.localizedDescription
         }
     }

@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 private enum AppTab: Hashable {
     case inbox
@@ -9,6 +10,7 @@ private enum AppTab: Hashable {
 }
 
 struct RootView: View {
+    private static let logger = Logger(subsystem: "com.benekuehn.Hozon", category: "SharedLinks")
     @Environment(\.scenePhase) private var scenePhase
     @State private var selectedTab: AppTab = .inbox
     @State private var inboxStore: LinksStore
@@ -145,7 +147,7 @@ struct RootView: View {
         do {
             pendingLinks = try SharedLinkInbox.takeAll()
         } catch {
-            print("Failed to read shared links: \(error.localizedDescription)")
+            Self.logger.error("Failed to read shared links. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             return
         }
 
@@ -157,7 +159,7 @@ struct RootView: View {
             do {
                 try await environment.linksRepository.createLink(url: pendingLink.url)
             } catch {
-                print("Failed to import shared link: \(error.localizedDescription)")
+                Self.logger.error("Failed to import a shared link. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
                 failedLinks.append(pendingLink)
             }
         }
@@ -166,7 +168,7 @@ struct RootView: View {
             do {
                 try SharedLinkInbox.requeue(failedLinks)
             } catch {
-                print("Failed to preserve undelivered shared links: \(error.localizedDescription)")
+                Self.logger.error("Failed to preserve undelivered shared links. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
             }
         }
 
@@ -184,94 +186,4 @@ struct RootView: View {
         )
     )
     .tint(AppTheme.accent)
-}
-
-struct PreviewLinksRepository: LinksRepository {
-    func cachedLinks(for list: LinksList) async -> [Link] {
-        list == .inbox ? previewLinks() : []
-    }
-
-    func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse {
-        let links = Array(previewLinks().dropFirst(offset).prefix(limit))
-        return LinksResponse(success: true, links: links, total: previewLinks().count)
-    }
-
-    private func previewLinks() -> [Link] {
-        [
-            previewLink(
-                id: "preview-1",
-                title: "Designing a Native iPad Reading App",
-                domain: "example.com",
-                feedURL: URL(string: "https://example.com/feed.xml")
-            ),
-            previewLink(
-                id: "preview-2",
-                title: "SwiftUI Navigation Patterns",
-                domain: "developer.apple.com"
-            )
-        ]
-    }
-
-    func fetchArchiveLinks(limit: Int, offset: Int) async throws -> LinksResponse {
-        LinksResponse(success: true, links: [], total: 0)
-    }
-
-    func fetchTrashLinks(limit: Int, offset: Int) async throws -> LinksResponse {
-        LinksResponse(success: true, links: [], total: 0)
-    }
-
-    func createLink(url: URL) async throws {
-        // No-op for previews.
-    }
-    
-    func deleteLink(id: Link.ID) async throws {
-        // No-op for previews.
-    }
-    
-    func archiveLink(id: Link.ID) async throws {
-        // No-op for previews.
-    }
-
-    func cachedSubscriptions() async -> [Subscription] { [] }
-
-    func refreshSubscriptions() async throws -> [Subscription] { [] }
-
-    func subscribe(to feedURL: URL, initialSync: Bool) async throws -> Subscription {
-        Subscription(id: "preview-subscription", feedUrl: feedURL)
-    }
-
-    func fetchLinks(for subscriptionID: Subscription.ID, filter: FeedEntriesFilter) async throws -> [Link] {
-        previewLinks().filter { $0.subscriptionId == subscriptionID }
-    }
-
-    func unsubscribe(id: Subscription.ID, disposition: UnsubscribeDisposition) async throws {
-        // No-op for previews.
-    }
-
-    private func previewLink(id: String, title: String, domain: String, feedURL: URL? = nil) -> Link {
-        let url = URL(string: "https://\(domain)") ?? URL(fileURLWithPath: "/")
-        let now = Date()
-
-        return Link(
-            id: id,
-            url: url,
-            title: title,
-            domain: domain,
-            summary: "Preview summary",
-            imageUrl: nil,
-            status: .ready,
-            source: .api,
-            createdAt: now,
-            updatedAt: now,
-            readAt: nil,
-            deletedAt: nil,
-            purgedAt: nil,
-            hnUrl: nil,
-            fileType: nil,
-            fileMimeType: nil,
-            notionPageId: nil,
-            author: nil,
-            discoverableFeedUrl: feedURL
-        )
-    }
 }

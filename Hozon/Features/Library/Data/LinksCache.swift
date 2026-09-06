@@ -1,6 +1,8 @@
 import Foundation
+import OSLog
 
 actor LinksCache {
+    private static let logger = Logger(subsystem: "com.benekuehn.Hozon", category: "LinksCache")
     private struct Snapshot: Codable {
         var inbox: [Link] = []
         var archive: [Link] = []
@@ -99,7 +101,7 @@ actor LinksCache {
             encoder.dateEncodingStrategy = .iso8601
             try encoder.encode(snapshot).write(to: fileURL, options: .atomic)
         } catch {
-            print("Failed to persist links cache: \(error.localizedDescription)")
+            Self.logger.error("Failed to persist the links cache. error=\(error.localizedDescription, privacy: .private(mask: .hash))")
         }
     }
 

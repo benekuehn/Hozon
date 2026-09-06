@@ -8,7 +8,7 @@ struct ShioriLinksRepository: LinksRepository {
         self.apiClient = apiClient
         self.cache = cache
         let cache = cache
-        Task.detached(priority: .background) {
+        Task(priority: .background) {
             await cache.pruneExpiredArchiveAndTrash()
         }
     }
@@ -19,7 +19,7 @@ struct ShioriLinksRepository: LinksRepository {
 
     func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse {
         let response = try await apiClient.fetchLinks(
-            read: "unread",
+            read: .unread,
             limit: limit,
             offset: offset
         )
@@ -31,7 +31,7 @@ struct ShioriLinksRepository: LinksRepository {
 
     func fetchArchiveLinks(limit: Int, offset: Int) async throws -> LinksResponse {
         let response = try await apiClient.fetchLinks(
-            read: "read",
+            read: .read,
             limit: limit,
             offset: offset
         )
@@ -89,17 +89,17 @@ struct ShioriLinksRepository: LinksRepository {
     }
 
     func fetchLinks(for subscriptionID: Subscription.ID, filter: FeedEntriesFilter) async throws -> [Link] {
-        let read = switch filter {
-        case .all: "all"
-        case .inbox: "unread"
-        case .archive: "read"
+        let read: LinkReadFilter = switch filter {
+        case .all: .all
+        case .inbox: .unread
+        case .archive: .read
         }
         return try await apiClient.fetchLinks(for: subscriptionID, read: read)
     }
 
     func unsubscribe(id: Subscription.ID, disposition: UnsubscribeDisposition) async throws {
         if disposition != .keepInInbox {
-            let unreadLinks = try await apiClient.fetchLinks(for: id, read: "unread")
+            let unreadLinks = try await apiClient.fetchLinks(for: id, read: .unread)
             let ids = unreadLinks.map(\.id)
 
             switch disposition {
@@ -130,7 +130,7 @@ struct ShioriLinksRepository: LinksRepository {
 
     private func pruneExpiredArchiveAndTrashCacheInBackground() {
         let cache = cache
-        Task.detached(priority: .background) {
+        Task(priority: .background) {
             await cache.pruneExpiredArchiveAndTrash()
         }
     }

@@ -32,9 +32,18 @@ struct LinksView: View {
 
         let calendar = Calendar.current
         let now = Date()
-        let thisWeek = calendar.dateInterval(of: .weekOfYear, for: now)!
+        guard
+            let thisWeek = calendar.dateInterval(of: .weekOfYear, for: now),
+            let previousWeekStart = calendar.date(
+                byAdding: .weekOfYear,
+                value: -1,
+                to: thisWeek.start
+            )
+        else {
+            return [LinkSection(title: nil, links: store.links)]
+        }
         let lastWeek = DateInterval(
-            start: calendar.date(byAdding: .weekOfYear, value: -1, to: thisWeek.start)!,
+            start: previousWeekStart,
             end: thisWeek.start
         )
 
