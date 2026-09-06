@@ -59,7 +59,11 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
     }
 
     private static func addToInbox(url: URL, apiKey: String) async throws {
-        var request = URLRequest(url: URL(string: "https://www.shiori.sh/api/links")!)
+        guard let endpoint = URL(string: "https://www.shiori.sh/api/links") else {
+            throw AddToHozonError.invalidConfiguration
+        }
+
+        var request = URLRequest(url: endpoint)
         request.assumesHTTP3Capable = false
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
@@ -132,12 +136,15 @@ private struct CreateLinkRequest: Encodable {
 
 private enum AddToHozonError: LocalizedError {
     case apiKeyNotConfigured
+    case invalidConfiguration
     case requestFailed
 
     var errorDescription: String? {
         switch self {
         case .apiKeyNotConfigured:
             "Add your Shiori API key in Hozon before using this action."
+        case .invalidConfiguration:
+            "Hozon is not configured with a valid Shiori endpoint."
         case .requestFailed:
             "Hozon could not add this link to your inbox."
         }
