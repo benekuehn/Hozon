@@ -9,6 +9,7 @@ private enum AppTab: Hashable {
     case settings
 }
 
+@MainActor
 struct RootView: View {
     private static let logger = Logger(subsystem: "com.benekuehn.Hozon", category: "SharedLinks")
     @Environment(\.scenePhase) private var scenePhase
@@ -20,7 +21,7 @@ struct RootView: View {
 
     private let environment: AppEnv
 
-    init(environment: AppEnv = .live) {
+    init(environment: AppEnv) {
         self.environment = environment
         _inboxStore = State(
             initialValue: LinksStore(

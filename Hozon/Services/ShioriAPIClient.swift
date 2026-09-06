@@ -35,6 +35,7 @@ enum ShioriAPIError: LocalizedError {
     }
 }
 
+@MainActor
 struct ShioriAPIClient {
     let baseURL: URL
     let apiKeyStore: ShioriAPIKeyStore

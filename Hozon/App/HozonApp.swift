@@ -6,7 +6,7 @@ struct HozonApp: App {
         WindowGroup {
             ZStack {
                 AppTheme.background.ignoresSafeArea()
-                RootView()
+                RootView(environment: .live)
             }
             .background(AppTheme.background)
             .tint(AppTheme.accent)

@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 struct AppEnv {
     let linksRepository: any LinksRepository
     let apiKeyStore: ShioriAPIKeyStore

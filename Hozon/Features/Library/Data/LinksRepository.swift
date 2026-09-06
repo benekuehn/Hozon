@@ -14,6 +14,7 @@ enum UnsubscribeDisposition: Sendable {
     case trashUnread
 }
 
+@MainActor
 protocol LinksRepository {
     func cachedLinks(for list: LinksList) async -> [Link]
     func refreshInboxLinks(limit: Int, offset: Int) async throws -> LinksResponse

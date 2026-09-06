@@ -32,6 +32,7 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
                 return
             }
 
+            let context = UncheckedSendable(value: context)
             Task { @MainActor in
                 do {
                     guard let apiKey = try SharedAPIKey.read() else {
@@ -47,12 +48,12 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
                         try SharedLinkInbox.enqueue(url: url)
                     } catch {
                         Self.logger.fault("Queueing retry failed: \(error.localizedDescription, privacy: .public)")
-                        context.cancelRequest(withError: error)
+                        context.value.cancelRequest(withError: error)
                         return
                     }
                 }
 
-                context.completeRequest(returningItems: nil)
+                context.value.completeRequest(returningItems: nil)
             }
         }
     }
@@ -114,6 +115,10 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
             nil
         }
     }
+}
+
+private struct UncheckedSendable<Value>: @unchecked Sendable {
+    let value: Value
 }
 
 private struct SharedInput {

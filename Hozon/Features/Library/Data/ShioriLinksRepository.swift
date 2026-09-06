@@ -1,5 +1,6 @@
 import Foundation
 
+@MainActor
 struct ShioriLinksRepository: LinksRepository {
     let apiClient: ShioriAPIClient
     private let cache: LinksCache

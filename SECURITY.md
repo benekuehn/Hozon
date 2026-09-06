@@ -6,7 +6,7 @@ Until Hozon publishes versioned releases, security fixes are made on the latest 
 
 ## Reporting a vulnerability
 
-Do not open a public issue for a suspected vulnerability, exposed credential, or privacy flaw. Use GitHub's private vulnerability reporting from the repository's **Security** tab and include:
+Do not publish details of a suspected vulnerability, exposed credential, or privacy flaw. Use GitHub's private vulnerability reporting from the repository's **Security** tab when it is available. Otherwise, open an issue containing no vulnerability details and ask the maintainer to establish a private reporting channel. Include the following only in the private report:
 
 - The affected revision or version
 - Reproduction steps or a proof of concept
