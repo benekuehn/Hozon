@@ -6,7 +6,6 @@
 set -euo pipefail
 
 readonly SCHEME="Hozon"
-readonly BUNDLE_IDENTIFIER="benekuehn.Hozon"
 
 script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 repo_root="$(CDPATH= cd -- "$script_dir/.." && pwd)"
@@ -16,7 +15,7 @@ usage() {
 Usage: ./scripts/deploy-ipad.sh [--device <identifier-or-name>] [--no-launch]
 
 Builds the Hozon Debug scheme for a connected physical iPad, installs the
-result, and launches benekuehn.Hozon. Run it from the repository or over SSH
+result, and launches its configured bundle identifier. Run it from the repository or over SSH
 on the Mac paired with the iPad.
 
 Options:
@@ -194,6 +193,7 @@ fi
 
 app_path="$(find "$derived_data/Build/Products" -type d -name 'Hozon.app' -path '*Debug-iphoneos*' -print | head -n 1)"
 [ -n "$app_path" ] && [ -d "$app_path" ] || die "Build succeeded but Hozon.app was not found in DerivedData."
+bundle_identifier="$(plutil -extract CFBundleIdentifier raw "$app_path/Info.plist")" || die "Could not read the built app's bundle identifier."
 
 printf 'Installing Hozon…\n'
 xcrun devicectl device install app --device "$device_udid" "$app_path"
@@ -203,7 +203,7 @@ if [ "$should_launch" = true ]; then
     xcrun devicectl device process launch \
         --device "$device_udid" \
         --terminate-existing \
-        "$BUNDLE_IDENTIFIER"
+        "$bundle_identifier"
 fi
 
 printf 'Deployment complete for %s.\n' "$device_name"

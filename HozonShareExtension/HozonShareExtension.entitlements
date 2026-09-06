@@ -4,12 +4,12 @@
 <dict>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.benekuehn.Hozon</string>
+		<string>$(HOZON_APP_GROUP_IDENTIFIER)</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>$(AppIdentifierPrefix)$(CFBundleIdentifier)</string>
-		<string>$(AppIdentifierPrefix)benekuehn.Hozon.shared</string>
+		<string>$(AppIdentifierPrefix)$(HOZON_KEYCHAIN_SHARED_ACCESS_GROUP)</string>
 	</array>
 </dict>
 </plist>

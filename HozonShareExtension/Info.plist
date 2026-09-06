@@ -18,6 +18,12 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>HozonAppGroupIdentifier</key>
+	<string>$(HOZON_APP_GROUP_IDENTIFIER)</string>
+	<key>HozonKeychainService</key>
+	<string>$(HOZON_KEYCHAIN_SERVICE)</string>
+	<key>HozonKeychainSharedAccessGroup</key>
+	<string>$(HOZON_KEYCHAIN_SHARED_ACCESS_GROUP)</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionAttributes</key>

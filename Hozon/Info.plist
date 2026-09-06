@@ -4,5 +4,11 @@
 <dict>
 	<key>AppIdentifierPrefix</key>
 	<string>$(AppIdentifierPrefix)</string>
+	<key>HozonAppGroupIdentifier</key>
+	<string>$(HOZON_APP_GROUP_IDENTIFIER)</string>
+	<key>HozonKeychainService</key>
+	<string>$(HOZON_KEYCHAIN_SERVICE)</string>
+	<key>HozonKeychainSharedAccessGroup</key>
+	<string>$(HOZON_KEYCHAIN_SHARED_ACCESS_GROUP)</string>
 </dict>
 </plist>

@@ -1,0 +1,35 @@
+name: iOS CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      - name: Build release configuration
+        run: >-
+          xcodebuild build
+          -quiet
+          -project Hozon.xcodeproj
+          -scheme Hozon
+          -configuration Release
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit tests
+        run: >-
+          xcodebuild test
+          -quiet
+          -project Hozon.xcodeproj
+          -scheme Hozon
+          -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=latest'
+          CODE_SIGNING_ALLOWED=NO

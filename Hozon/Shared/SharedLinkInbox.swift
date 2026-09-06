@@ -19,9 +19,9 @@ enum SharedAPIKeyError: LocalizedError {
 /// Action extension. The app migrates keys saved before Keychain sharing was
 /// enabled, so existing installations do not need to enter the key again.
 enum SharedAPIKey {
-    private static let service = "benekuehn.Hozon"
+    private static let service = Bundle.main.object(forInfoDictionaryKey: "HozonKeychainService") as? String ?? "com.example.Hozon"
     private static let account = "shiori-api-key"
-    private static let accessGroupSuffix = "benekuehn.Hozon.shared"
+    private static let accessGroupSuffix = Bundle.main.object(forInfoDictionaryKey: "HozonKeychainSharedAccessGroup") as? String ?? "com.example.Hozon.shared"
 
     static func migrateLegacyValueIfNeeded() throws {
         guard try read() == nil, let legacyValue = try read(usingSharedAccessGroup: false) else {
@@ -136,17 +136,21 @@ enum SharedLinkInboxError: LocalizedError {
 }
 
 enum SharedLinkInbox {
-    static let appGroupIdentifier = "group.benekuehn.Hozon"
+    static let appGroupIdentifier = Bundle.main.object(forInfoDictionaryKey: "HozonAppGroupIdentifier") as? String ?? "group.com.example.Hozon"
 
     private static let fileName = "pending-shared-links.json"
 
     static func enqueue(url: URL) throws {
-        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
-            throw SharedLinkInboxError.unsupportedURL
-        }
+        try validate(url: url)
 
         try update { pending in
             pending.append(PendingSharedLink(url: url))
+        }
+    }
+
+    static func validate(url: URL) throws {
+        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+            throw SharedLinkInboxError.unsupportedURL
         }
     }
 

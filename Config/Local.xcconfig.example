@@ -1,0 +1,6 @@
+// Copy this file to Local.xcconfig (which is gitignored) before signing a
+// device build. Create the matching App Group and Keychain Sharing capability
+// in your Apple Developer account.
+
+HOZON_DEVELOPMENT_TEAM = YOURTEAMID
+HOZON_BUNDLE_IDENTIFIER = com.yourcompany.Hozon

@@ -1,0 +1,11 @@
+// Public defaults. Simulator builds work without a developer account. For
+// device signing, copy Local.xcconfig.example to Local.xcconfig and override
+// these values with identifiers from your Apple Developer team.
+HOZON_DEVELOPMENT_TEAM =
+HOZON_BUNDLE_IDENTIFIER = com.example.Hozon
+HOZON_EXTENSION_BUNDLE_IDENTIFIER = $(HOZON_BUNDLE_IDENTIFIER).ActionExtension
+HOZON_APP_GROUP_IDENTIFIER = group.$(HOZON_BUNDLE_IDENTIFIER)
+HOZON_KEYCHAIN_SHARED_ACCESS_GROUP = $(HOZON_BUNDLE_IDENTIFIER).shared
+HOZON_KEYCHAIN_SERVICE = $(HOZON_BUNDLE_IDENTIFIER)
+
+#include? "Local.xcconfig"

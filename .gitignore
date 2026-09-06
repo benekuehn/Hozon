@@ -1,4 +1,5 @@
 Hozon/App/Secrets.swift
+Config/Local.xcconfig
 DerivedData/
 build/
 .DS_Store
