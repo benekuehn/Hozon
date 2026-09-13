@@ -148,6 +148,7 @@ final class HozonTests: XCTestCase {
         let existing = subscription(id: "existing", feedURL: URL(string: "https://example.com/feed.xml")!)
         let repository = SubscriptionStubRepository(
             cachedSubscriptions: [existing],
+            refreshedSubscriptions: [existing],
             unsubscribeError: StubError.failed
         )
         let store = SubscriptionsStore(repository: repository)
