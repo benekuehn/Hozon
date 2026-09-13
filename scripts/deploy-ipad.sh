@@ -39,9 +39,10 @@ signing_help() {
 
 Signing/provisioning prerequisite:
   1. Sign in to Xcode with the Apple Developer account for this project.
-  2. In Certificates, Identifiers & Profiles, enable the App Group
-     group.benekuehn.Hozon for both benekuehn.Hozon and
-     benekuehn.Hozon.ActionExtension.
+  2. Set your HOZON_BUNDLE_IDENTIFIER in Config/Local.xcconfig (see README).
+     In Certificates, Identifiers & Profiles, enable the App Group
+     group.<your bundle identifier> for both <your bundle identifier>
+     and <your bundle identifier>.ActionExtension; enable Keychain Sharing too.
   3. Let Xcode's automatic signing create or refresh the development profiles,
      then rerun this script.
 EOF

@@ -149,7 +149,9 @@ enum SharedLinkInbox {
     }
 
     static func validate(url: URL) throws {
-        guard let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
+        guard let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https",
+              let host = url.host(), !host.isEmpty else {
             throw SharedLinkInboxError.unsupportedURL
         }
     }

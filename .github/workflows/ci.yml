@@ -25,11 +25,22 @@ jobs:
           -destination 'generic/platform=iOS Simulator'
           CODE_SIGNING_ALLOWED=NO
 
-      - name: Run unit tests
+      - name: Build for testing (Debug)
         run: >-
-          xcodebuild test
+          xcodebuild build-for-testing
           -quiet
           -project Hozon.xcodeproj
           -scheme Hozon
+          -configuration Debug
+          -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=latest'
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Run unit tests
+        run: >-
+          xcodebuild test-without-building
+          -quiet
+          -project Hozon.xcodeproj
+          -scheme Hozon
+          -configuration Debug
           -destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4),OS=latest'
           CODE_SIGNING_ALLOWED=NO

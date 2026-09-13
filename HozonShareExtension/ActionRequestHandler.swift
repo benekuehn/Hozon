@@ -19,14 +19,13 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
 
         input.provider.loadItem(forTypeIdentifier: input.typeIdentifier, options: nil) { item, error in
             if let error {
-                Self.logger.error("Loading shared input failed: \(error.localizedDescription, privacy: .public)")
+                Self.logger.error("Loading shared input failed: \(error.localizedDescription, privacy: .private(mask: .hash))")
                 context.cancelRequest(withError: error)
                 return
             }
 
             guard let url = Self.url(from: item, typeIdentifier: input.typeIdentifier),
-                  let scheme = url.scheme?.lowercased(),
-                  scheme == "http" || scheme == "https" else {
+                  (try? SharedLinkInbox.validate(url: url)) != nil else {
                 Self.logger.error("Shared input did not contain an HTTP URL")
                 context.cancelRequest(withError: SharedLinkInboxError.unsupportedURL)
                 return
@@ -41,13 +40,13 @@ final class ActionRequestHandler: NSObject, NSExtensionRequestHandling {
                     try await Self.addToInbox(url: url, apiKey: apiKey)
                     Self.logger.info("Link delivered directly to Shiori")
                 } catch {
-                    Self.logger.error("Direct delivery failed; queueing retry: \(error.localizedDescription, privacy: .public)")
+                    Self.logger.error("Direct delivery failed; queueing retry: \(error.localizedDescription, privacy: .private(mask: .hash))")
                     // Preserve the link for the containing app to retry later.
                     // The action still completes without presenting more UI.
                     do {
                         try SharedLinkInbox.enqueue(url: url)
                     } catch {
-                        Self.logger.fault("Queueing retry failed: \(error.localizedDescription, privacy: .public)")
+                        Self.logger.fault("Queueing retry failed: \(error.localizedDescription, privacy: .private(mask: .hash))")
                         context.value.cancelRequest(withError: error)
                         return
                     }
