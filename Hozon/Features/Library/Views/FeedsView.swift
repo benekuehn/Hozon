@@ -3,6 +3,7 @@ import SwiftUI
 struct FeedsView: View {
     let subscriptionsStore: SubscriptionsStore
     let repository: any LinksRepository
+    let linkOpeningPreferenceStore: LinkOpeningPreferenceStore
 
     @State private var isPresentingAddFeed = false
 
@@ -33,7 +34,8 @@ struct FeedsView: View {
                     FeedDetailView(
                         subscription: subscription,
                         subscriptionsStore: subscriptionsStore,
-                        repository: repository
+                        repository: repository,
+                        linkOpeningPreferenceStore: linkOpeningPreferenceStore
                     )
                 } label: {
                     FeedRowView(subscription: subscription)

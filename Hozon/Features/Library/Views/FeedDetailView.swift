@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct FeedDetailView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
 
     let subscription: Subscription
     let subscriptionsStore: SubscriptionsStore
+    let linkOpeningPreferenceStore: LinkOpeningPreferenceStore
 
     @State private var store: FeedLinksStore
     @State private var selectedLink: Link?
@@ -15,17 +17,19 @@ struct FeedDetailView: View {
     init(
         subscription: Subscription,
         subscriptionsStore: SubscriptionsStore,
-        repository: any LinksRepository
+        repository: any LinksRepository,
+        linkOpeningPreferenceStore: LinkOpeningPreferenceStore
     ) {
         self.subscription = subscription
         self.subscriptionsStore = subscriptionsStore
+        self.linkOpeningPreferenceStore = linkOpeningPreferenceStore
         _store = State(initialValue: FeedLinksStore(subscriptionID: subscription.id, repository: repository))
     }
 
     var body: some View {
         List(store.links) { link in
             Button {
-                selectedLink = link
+                open(link)
             } label: {
                 LinkRowView(link: link)
             }
@@ -139,6 +143,15 @@ struct FeedDetailView: View {
         websitePresentation = BrowserPresentation(url: siteURL)
     }
 
+    private func open(_ link: Link) {
+        if linkOpeningPreferenceStore.preference.opensInReader(for: colorScheme) {
+            selectedLink = link
+        } else {
+            selectedLink = nil
+            websitePresentation = BrowserPresentation(url: link.url)
+        }
+    }
+
     private func presentUnsubscribeOptions() {
         isPresentingUnsubscribe = true
     }
@@ -168,10 +181,4 @@ private struct FeedFilterPicker: View {
         .padding(.vertical, 8)
         .background(.bar)
     }
-}
-
-private struct BrowserPresentation: Identifiable {
-    let url: URL
-
-    var id: URL { url }
 }

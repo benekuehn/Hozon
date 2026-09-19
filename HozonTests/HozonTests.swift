@@ -18,6 +18,32 @@ final class HozonTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LinkSource.self, from: data), .unknown)
     }
 
+    func testLinkOpeningPreferenceUsesReaderForConfiguredAppearance() {
+        XCTAssertTrue(LinkOpeningPreference.alwaysReader.opensInReader(for: .light))
+        XCTAssertTrue(LinkOpeningPreference.alwaysReader.opensInReader(for: .dark))
+        XCTAssertFalse(LinkOpeningPreference.alwaysWebView.opensInReader(for: .light))
+        XCTAssertFalse(LinkOpeningPreference.alwaysWebView.opensInReader(for: .dark))
+        XCTAssertFalse(LinkOpeningPreference.readerInDarkMode.opensInReader(for: .light))
+        XCTAssertTrue(LinkOpeningPreference.readerInDarkMode.opensInReader(for: .dark))
+    }
+
+    func testLinkOpeningPreferenceDefaultsAndPersists() throws {
+        let suiteName = "HozonTests.LinkOpeningPreference.\(UUID().uuidString)"
+        let userDefaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        defer { userDefaults.removePersistentDomain(forName: suiteName) }
+
+        var store = LinkOpeningPreferenceStore(userDefaults: userDefaults)
+        XCTAssertEqual(store.preference, .readerInDarkMode)
+
+        store.preference = .alwaysWebView
+        store = LinkOpeningPreferenceStore(userDefaults: userDefaults)
+        XCTAssertEqual(store.preference, .alwaysWebView)
+
+        userDefaults.set("unsupported", forKey: LinkOpeningPreference.storageKey)
+        store = LinkOpeningPreferenceStore(userDefaults: userDefaults)
+        XCTAssertEqual(store.preference, .readerInDarkMode)
+    }
+
     func testLinksResponseDecodesSnakeCasePayload() throws {
         let data = Data("""
         {

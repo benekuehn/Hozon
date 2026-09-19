@@ -53,6 +53,7 @@ struct RootView: View {
                     title: "Inbox",
                     store: inboxStore,
                     subscriptionsStore: subscriptionsStore,
+                    linkOpeningPreferenceStore: environment.linkOpeningPreferenceStore,
                     showsDateSections: true,
                     showsArchiveAction: true,
                     showsDeleteAction: true
@@ -62,7 +63,8 @@ struct RootView: View {
             Tab("Feeds", systemImage: "dot.radiowaves.left.and.right", value: .feeds) {
                 FeedsView(
                     subscriptionsStore: subscriptionsStore,
-                    repository: environment.linksRepository
+                    repository: environment.linksRepository,
+                    linkOpeningPreferenceStore: environment.linkOpeningPreferenceStore
                 )
             }
 
@@ -71,6 +73,7 @@ struct RootView: View {
                     title: "Archive",
                     store: archiveStore,
                     subscriptionsStore: subscriptionsStore,
+                    linkOpeningPreferenceStore: environment.linkOpeningPreferenceStore,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: true
@@ -82,20 +85,20 @@ struct RootView: View {
                     title: "Trash",
                     store: trashStore,
                     subscriptionsStore: subscriptionsStore,
+                    linkOpeningPreferenceStore: environment.linkOpeningPreferenceStore,
                     showsDateSections: false,
                     showsArchiveAction: false,
                     showsDeleteAction: false
                 )
             }
-            .tabPlacement(.sidebarOnly)
-
             Tab("Settings", systemImage: "gearshape", value: .settings) {
-                SettingsView(apiKeyStore: environment.apiKeyStore)
+                SettingsView(
+                    apiKeyStore: environment.apiKeyStore,
+                    linkOpeningPreferenceStore: environment.linkOpeningPreferenceStore
+                )
             }
-            .tabPlacement(.pinned)
         }
-        .tabViewStyle(.sidebarAdaptable)
-        .defaultAdaptableTabBarPlacement(.sidebar)
+        .tabViewStyle(.tabBarOnly)
         .sheet(isPresented: Binding(
             get: { !environment.apiKeyStore.hasAPIKey },
             set: { _ in }
@@ -183,7 +186,8 @@ struct RootView: View {
     RootView(
         environment: AppEnv(
             linksRepository: PreviewLinksRepository(),
-            apiKeyStore: .preview(apiKey: "preview-api-key")
+            apiKeyStore: .preview(apiKey: "preview-api-key"),
+            linkOpeningPreferenceStore: LinkOpeningPreferenceStore()
         )
     )
     .tint(AppTheme.accent)

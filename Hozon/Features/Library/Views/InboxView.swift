@@ -1,13 +1,16 @@
 import SwiftUI
 
 struct LinksView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     let store: LinksStore
     let subscriptionsStore: SubscriptionsStore
+    let linkOpeningPreferenceStore: LinkOpeningPreferenceStore
     let showsDateSections: Bool
     let showsArchiveAction: Bool
     let showsDeleteAction: Bool
     @State private var selectedLink: Link?
+    @State private var websitePresentation: BrowserPresentation?
     
     private enum InboxBucket: String, CaseIterable, Identifiable {
         case today = "Today"
@@ -151,11 +154,14 @@ struct LinksView: View {
                 }
             }
         }
+        .fullScreenCover(item: $websitePresentation) { presentation in
+            BrowserSheetView(url: presentation.url)
+        }
     }
 
     private func linkRow(for link: Link) -> some View {
         Button {
-            selectedLink = link
+            open(link)
         } label: {
             LinkRowView(link: link)
         }
@@ -194,6 +200,15 @@ struct LinksView: View {
             }
         }
         .listRowBackground(AppTheme.rowBackground)
+    }
+
+    private func open(_ link: Link) {
+        if linkOpeningPreferenceStore.preference.opensInReader(for: colorScheme) {
+            selectedLink = link
+        } else {
+            selectedLink = nil
+            websitePresentation = BrowserPresentation(url: link.url)
+        }
     }
 }
 

@@ -1,6 +1,12 @@
 import SwiftUI
 import SafariServices
 
+struct BrowserPresentation: Identifiable {
+    let url: URL
+
+    var id: URL { url }
+}
+
 struct BrowserSheetView: UIViewControllerRepresentable {
     @Environment(\.dismiss) private var dismiss
 

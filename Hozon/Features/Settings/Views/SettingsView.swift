@@ -6,14 +6,19 @@ struct SettingsView: View {
     }
 
     let apiKeyStore: ShioriAPIKeyStore
+    let linkOpeningPreferenceStore: LinkOpeningPreferenceStore
 
     @State private var apiKey: String
     @State private var errorMessage: String?
     @State private var isEditingAPIKey = false
     @FocusState private var isAPIKeyFieldFocused: Bool
 
-    init(apiKeyStore: ShioriAPIKeyStore) {
+    init(
+        apiKeyStore: ShioriAPIKeyStore,
+        linkOpeningPreferenceStore: LinkOpeningPreferenceStore
+    ) {
         self.apiKeyStore = apiKeyStore
+        self.linkOpeningPreferenceStore = linkOpeningPreferenceStore
         _apiKey = State(initialValue: "")
     }
 
@@ -51,6 +56,22 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text("Shiori")
+                }
+
+                Section {
+                    Picker("Open Links With", selection: linkOpeningPreferenceBinding) {
+                        ForEach(LinkOpeningPreference.allCases) { preference in
+                            Text(preference.title).tag(preference)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.inline)
+                    .listRowBackground(AppTheme.rowBackground)
+                    .listRowSeparator(.hidden)
+                } header: {
+                    Text("Open Links With")
+                } footer: {
+                    Text("Choose whether links open in Reader or the in-app web view.")
                 }
             }
             .navigationTitle("Settings")
@@ -110,6 +131,13 @@ struct SettingsView: View {
 
     private var hasEnteredAPIKey: Bool {
         !apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var linkOpeningPreferenceBinding: Binding<LinkOpeningPreference> {
+        Binding(
+            get: { linkOpeningPreferenceStore.preference },
+            set: { linkOpeningPreferenceStore.preference = $0 }
+        )
     }
 
     private func cancelEditingAPIKey() {
