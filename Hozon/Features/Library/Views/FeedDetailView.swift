@@ -2,13 +2,12 @@ import SwiftUI
 
 struct FeedDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     let subscription: Subscription
     let subscriptionsStore: SubscriptionsStore
 
     @State private var store: FeedLinksStore
-    @State private var selectedLinkID: Link.ID?
+    @State private var selectedLink: Link?
     @State private var websitePresentation: BrowserPresentation?
     @State private var isPresentingUnsubscribe = false
     @State private var errorMessage: String?
@@ -24,26 +23,40 @@ struct FeedDetailView: View {
     }
 
     var body: some View {
-        Group {
-            if horizontalSizeClass == .regular {
-                NavigationSplitView {
-                    entriesList
-                } detail: {
-                    readerDetail
-                }
-            } else {
-                entriesList
-                    .sheet(item: selectedLinkBinding) { link in
-                        ReaderSheetView(link: link)
-                            .presentationSizing(.page)
-                    }
+        List(store.links) { link in
+            Button {
+                selectedLink = link
+            } label: {
+                LinkRowView(link: link)
             }
+            .buttonStyle(.plain)
+            .listRowBackground(AppTheme.rowBackground)
+        }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(AppTheme.background)
+        .navigationTitle(subscription.displayTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .safeAreaInset(edge: .top) {
+            FeedFilterPicker(filter: filterBinding)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                feedActionsMenu
+            }
+        }
+        .overlay {
+            feedStateOverlay
         }
         .task(id: store.filter) {
             await store.load()
-            if selectedLink == nil {
-                selectedLinkID = nil
-            }
+        }
+        .refreshable {
+            await store.load()
+        }
+        .sheet(item: $selectedLink) { link in
+            ReaderSheetView(link: link)
+                .presentationSizing(.page)
         }
         .fullScreenCover(item: $websitePresentation) { presentation in
             BrowserSheetView(url: presentation.url)
@@ -73,79 +86,10 @@ struct FeedDetailView: View {
         }
     }
 
-    private var entriesList: some View {
-        List(store.links) { link in
-            Button {
-                selectedLinkID = link.id
-            } label: {
-                LinkRowView(link: link)
-            }
-            .buttonStyle(.plain)
-            .listRowBackground(
-                selectedLinkID == link.id
-                    ? AppTheme.accent.opacity(0.14)
-                    : AppTheme.rowBackground
-            )
-            .accessibilityValue(selectedLinkID == link.id ? "Selected" : "")
-        }
-        .listStyle(.insetGrouped)
-        .scrollContentBackground(.hidden)
-        .background(AppTheme.background)
-        .navigationTitle(subscription.displayTitle)
-        .navigationBarTitleDisplayMode(.inline)
-        .safeAreaInset(edge: .top) {
-            FeedFilterPicker(filter: filterBinding)
-        }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                feedActionsMenu
-            }
-        }
-        .overlay {
-            feedStateOverlay
-        }
-        .refreshable {
-            await store.load()
-            if selectedLink == nil {
-                selectedLinkID = nil
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var readerDetail: some View {
-        if let selectedLink {
-            ArticleReaderView(link: selectedLink)
-                .id(selectedLink.id)
-        } else {
-            ContentUnavailableView(
-                "Select an Article",
-                systemImage: "doc.text",
-                description: Text("Choose an article from the list to read it here.")
-            )
-            .background(AppTheme.background)
-        }
-    }
-
-    private var selectedLink: Link? {
-        guard let selectedLinkID else { return nil }
-        return store.links.first { $0.id == selectedLinkID }
-    }
-
-    private var selectedLinkBinding: Binding<Link?> {
-        Binding(
-            get: { selectedLink },
-            set: { selectedLinkID = $0?.id }
-        )
-    }
-
     private var filterBinding: Binding<FeedEntriesFilter> {
         Binding(
             get: { store.filter },
-            set: {
-                selectedLinkID = nil
-                store.filter = $0
-            }
+            set: { store.filter = $0 }
         )
     }
 
