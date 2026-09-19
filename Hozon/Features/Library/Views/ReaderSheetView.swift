@@ -2,6 +2,31 @@ import SwiftUI
 
 @MainActor
 struct ReaderSheetView: View {
+    let link: Link
+    let extractor: any ArticleExtracting
+
+    init(link: Link) {
+        self.init(link: link, extractor: WebKitArticleExtractor())
+    }
+
+    init(link: Link, extractor: any ArticleExtracting) {
+        self.link = link
+        self.extractor = extractor
+    }
+
+    var body: some View {
+        NavigationStack {
+            ArticleReaderView(
+                link: link,
+                extractor: extractor,
+                showsCloseButton: true
+            )
+        }
+    }
+}
+
+@MainActor
+struct ArticleReaderView: View {
     private enum LoadState {
         case loading
         case loaded(ArticleDocument)
@@ -18,38 +43,49 @@ struct ReaderSheetView: View {
     @State private var originalPage: OriginalPagePresentation?
 
     init(link: Link) {
-        self.init(link: link, extractor: WebKitArticleExtractor())
+        self.init(
+            link: link,
+            extractor: WebKitArticleExtractor(),
+            showsCloseButton: false
+        )
     }
 
-    init(link: Link, extractor: any ArticleExtracting) {
+    init(
+        link: Link,
+        extractor: any ArticleExtracting,
+        showsCloseButton: Bool = false
+    ) {
         self.link = link
         self.extractor = extractor
+        self.showsCloseButton = showsCloseButton
     }
 
+    let showsCloseButton: Bool
+
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    articleHeader
-                    readerContent
-                }
-                .frame(maxWidth: 720, alignment: .leading)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.horizontal, 24)
-                .padding(.vertical, 32)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                articleHeader
+                readerContent
             }
-            .background(AppTheme.background)
-            .navigationTitle("Reader")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 32)
+        }
+        .background(AppTheme.background)
+        .navigationTitle("Reader")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if showsCloseButton {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+            }
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Open Original", systemImage: "safari") {
-                        originalPage = OriginalPagePresentation(url: link.url)
-                    }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Open Original", systemImage: "safari") {
+                    originalPage = OriginalPagePresentation(url: link.url)
                 }
             }
         }

@@ -114,6 +114,13 @@ enum LinkStatus: String, Codable, Sendable {
     case processing
     case ready
     case failed
+    case error
+    case unknown
+
+    init(from decoder: Decoder) throws {
+        let rawValue = try decoder.singleValueContainer().decode(String.self)
+        self = LinkStatus(rawValue: rawValue) ?? .unknown
+    }
 }
 
 enum LinkSource: String, Codable, Sendable {

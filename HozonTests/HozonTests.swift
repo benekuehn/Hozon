@@ -18,6 +18,17 @@ final class HozonTests: XCTestCase {
         XCTAssertEqual(try JSONDecoder().decode(LinkSource.self, from: data), .unknown)
     }
 
+    func testLinkStatusDecodesErrorAndUnknownValues() throws {
+        XCTAssertEqual(
+            try JSONDecoder().decode(LinkStatus.self, from: Data(#""error""#.utf8)),
+            .error
+        )
+        XCTAssertEqual(
+            try JSONDecoder().decode(LinkStatus.self, from: Data(#""future_status""#.utf8)),
+            .unknown
+        )
+    }
+
     func testLinksResponseDecodesSnakeCasePayload() throws {
         let data = Data("""
         {

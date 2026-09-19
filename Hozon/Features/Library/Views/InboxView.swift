@@ -1,13 +1,15 @@
 import SwiftUI
 
 struct LinksView: View {
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     let title: String
     let store: LinksStore
     let subscriptionsStore: SubscriptionsStore
     let showsDateSections: Bool
     let showsArchiveAction: Bool
     let showsDeleteAction: Bool
-    @State private var selectedLink: Link?
+    @State private var selectedLinkID: Link.ID?
     
     private enum InboxBucket: String, CaseIterable, Identifiable {
         case today = "Today"
@@ -61,26 +63,34 @@ struct LinksView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            linksList
-        }
-        .sheet(item: $selectedLink) { link in
-            ReaderSheetView(link: link)
-                .presentationSizing(.page)
+        if horizontalSizeClass == .regular {
+            NavigationSplitView {
+                linksList
+            } detail: {
+                readerDetail
+            }
+        } else {
+            NavigationStack {
+                linksList
+            }
+            .sheet(item: selectedLinkBinding) { link in
+                ReaderSheetView(link: link)
+                    .presentationSizing(.page)
+            }
         }
     }
 
     private func archive(_ link: Link) async {
-        if selectedLink?.id == link.id {
-            selectedLink = nil
+        if selectedLinkID == link.id {
+            selectedLinkID = nil
         }
 
         await store.archiveLink(link)
     }
 
     private func delete(_ link: Link) async {
-        if selectedLink?.id == link.id {
-            selectedLink = nil
+        if selectedLinkID == link.id {
+            selectedLinkID = nil
         }
 
         await store.deleteLink(link)
@@ -153,9 +163,36 @@ struct LinksView: View {
         }
     }
 
+    @ViewBuilder
+    private var readerDetail: some View {
+        if let selectedLink {
+            ArticleReaderView(link: selectedLink)
+                .id(selectedLink.id)
+        } else {
+            ContentUnavailableView(
+                "Select an Article",
+                systemImage: "doc.text",
+                description: Text("Choose an article from the list to read it here.")
+            )
+            .background(AppTheme.background)
+        }
+    }
+
+    private var selectedLink: Link? {
+        guard let selectedLinkID else { return nil }
+        return store.links.first { $0.id == selectedLinkID }
+    }
+
+    private var selectedLinkBinding: Binding<Link?> {
+        Binding(
+            get: { selectedLink },
+            set: { selectedLinkID = $0?.id }
+        )
+    }
+
     private func linkRow(for link: Link) -> some View {
         Button {
-            selectedLink = link
+            selectedLinkID = link.id
         } label: {
             LinkRowView(link: link)
         }
@@ -193,7 +230,12 @@ struct LinksView: View {
                 .tint(.gray)
             }
         }
-        .listRowBackground(AppTheme.rowBackground)
+        .listRowBackground(
+            selectedLinkID == link.id
+                ? AppTheme.accent.opacity(0.14)
+                : AppTheme.rowBackground
+        )
+        .accessibilityValue(selectedLinkID == link.id ? "Selected" : "")
     }
 }
 
